@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import type { AppState } from "./types";
-import { PLAYER_SPEED, TILE_SIZE } from "./constants";
+import {
+  COLLISION_PADDING,
+  PLAYER_SPEED,
+  TILE_SIZE,
+} from "./constants";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
@@ -9,7 +13,8 @@ interface UseKeyboardOptions {
 
 /**
  * Calculates and applies player movement with collision detection.
- * Prevents movement into covered tiles and handles sliding along walls.
+ * Prevents movement into covered tiles using a padding buffer.
+ * Allows sliding along walls by moving as close as possible to boundaries.
  */
 function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
   const { player, world } = draft;
@@ -32,22 +37,53 @@ function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
     return world[tileY][tileX].covered;
   };
 
-  // Current position is assumed to be on an uncovered tile
   const startX = player.x;
   const startY = player.y;
 
-  // Try applying X movement only
+  // Handle X-axis movement with padding
   let finalDx = dx;
-  const newX = startX + dx;
-  if (isPositionCovered(newX, startY)) {
-    finalDx = 0; // Block X movement if it would enter a covered tile
+  if (dx !== 0) {
+    const newX = startX + dx;
+    const checkX = newX + (dx > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
+
+    if (isPositionCovered(checkX, startY)) {
+      // Calculate the tile boundary we're approaching
+      const targetTileX =
+        dx > 0 ? Math.floor(checkX / TILE_SIZE) : Math.ceil(checkX / TILE_SIZE);
+      const boundaryX = targetTileX * TILE_SIZE;
+
+      // Calculate max distance we can move (to padding distance from boundary)
+      const maxDistance =
+        dx > 0
+          ? boundaryX - COLLISION_PADDING - startX
+          : boundaryX + COLLISION_PADDING - startX;
+
+      // Use the smaller of requested movement or max allowed distance
+      finalDx = Math.abs(dx) < Math.abs(maxDistance) ? dx : maxDistance;
+    }
   }
 
-  // Try applying Y movement only
+  // Handle Y-axis movement with padding
   let finalDy = dy;
-  const newY = startY + dy;
-  if (isPositionCovered(startX, newY)) {
-    finalDy = 0; // Block Y movement if it would enter a covered tile
+  if (dy !== 0) {
+    const newY = startY + dy;
+    const checkY = newY + (dy > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
+
+    if (isPositionCovered(startX, checkY)) {
+      // Calculate the tile boundary we're approaching
+      const targetTileY =
+        dy > 0 ? Math.floor(checkY / TILE_SIZE) : Math.ceil(checkY / TILE_SIZE);
+      const boundaryY = targetTileY * TILE_SIZE;
+
+      // Calculate max distance we can move (to padding distance from boundary)
+      const maxDistance =
+        dy > 0
+          ? boundaryY - COLLISION_PADDING - startY
+          : boundaryY + COLLISION_PADDING - startY;
+
+      // Use the smaller of requested movement or max allowed distance
+      finalDy = Math.abs(dy) < Math.abs(maxDistance) ? dy : maxDistance;
+    }
   }
 
   // Apply the allowed movement
