@@ -141,8 +141,12 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
   // Animation loop for smooth player movement with acceleration
   useEffect(() => {
     let animationFrameId: number;
+    let lastTime = performance.now();
 
-    const updatePlayer = () => {
+    const updatePlayer = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+      lastTime = currentTime;
+
       setState((draft) => {
         let inputX = 0;
         let inputY = 0;
@@ -159,21 +163,21 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           inputY /= inputMagnitude;
         }
 
-        // Apply acceleration in the direction of input
+        // Apply acceleration in the direction of input (tiles/s^2 * deltaTime)
         if (inputX !== 0 || inputY !== 0) {
-          draft.player.vx += inputX * PLAYER_ACCELERATION;
-          draft.player.vy += inputY * PLAYER_ACCELERATION;
+          draft.player.vx += inputX * PLAYER_ACCELERATION * deltaTime;
+          draft.player.vy += inputY * PLAYER_ACCELERATION * deltaTime;
         } else {
           // Apply friction when no input (decelerate)
           draft.player.vx *= PLAYER_FRICTION;
           draft.player.vy *= PLAYER_FRICTION;
 
-          // Stop completely if velocity is very small
+          // Stop completely if velocity is very small (0.01 tiles/s)
           if (Math.abs(draft.player.vx) < 0.01) draft.player.vx = 0;
           if (Math.abs(draft.player.vy) < 0.01) draft.player.vy = 0;
         }
 
-        // Clamp velocity to max speed
+        // Clamp velocity to max speed (tiles/s)
         const currentSpeed = Math.sqrt(
           draft.player.vx * draft.player.vx + draft.player.vy * draft.player.vy,
         );
@@ -182,9 +186,13 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           draft.player.vy = (draft.player.vy / currentSpeed) * PLAYER_SPEED;
         }
 
-        // Apply movement using velocity
+        // Apply movement using velocity (tiles/s) and delta time (s)
         if (draft.player.vx !== 0 || draft.player.vy !== 0) {
-          applyPlayerMovement(draft, draft.player.vx, draft.player.vy);
+          // Convert velocity in tiles/s to pixels by multiplying by TILE_SIZE
+          // Then multiply by deltaTime to get distance traveled this frame
+          const dx = draft.player.vx * TILE_SIZE * deltaTime;
+          const dy = draft.player.vy * TILE_SIZE * deltaTime;
+          applyPlayerMovement(draft, dx, dy);
         } else {
           // Clear colliding tiles when not moving
           if (draft.collidingTiles.size > 0) {
