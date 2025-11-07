@@ -150,6 +150,13 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
         setState((draft) => {
           applyPlayerMovement(draft, dx, dy);
         });
+      } else {
+        setState((draft) => {
+          // Clear colliding tiles when not moving
+          if (draft.collidingTiles.size > 0) {
+            draft.collidingTiles.clear();
+          }
+        });
       }
 
       animationFrameId = requestAnimationFrame(updatePlayer);
