@@ -15,12 +15,12 @@ interface TileChunkProps {
 
 function getTileColor(covered: boolean): string {
   if (covered) {
-    // Random shade of black (0-40% lightness)
-    const lightness = Math.floor(Math.random() * 40);
+    // Random shade of black (0-20% lightness)
+    const lightness = Math.floor(Math.random() * 20);
     return `hsl(0, 0%, ${lightness}%)`;
   } else {
-    // Random shade of white (60-100% lightness)
-    const lightness = 60 + Math.floor(Math.random() * 40);
+    // Random shade of white (80-100% lightness)
+    const lightness = 80 + Math.floor(Math.random() * 20);
     return `hsl(0, 0%, ${lightness}%)`;
   }
 }
