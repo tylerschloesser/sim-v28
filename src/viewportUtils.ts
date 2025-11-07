@@ -20,18 +20,21 @@ export function updateVisibleChunks(draft: AppState): void {
   const chunkSizePixels = CHUNK_SIZE * TILE_SIZE;
   const { viewport } = draft;
 
+  // Calculate which chunks are visible
+  // Floor for min (rounds down to chunk boundary)
+  // Ceil for max (rounds up to include partial chunks)
   draft.visibleChunks.minChunkX = Math.max(
     0,
-    Math.floor((viewport.x - chunkSizePixels) / chunkSizePixels),
+    Math.floor(viewport.x / chunkSizePixels),
   );
   draft.visibleChunks.maxChunkX = Math.ceil(
-    (viewport.x + viewport.width + chunkSizePixels) / chunkSizePixels,
+    (viewport.x + viewport.width) / chunkSizePixels,
   );
   draft.visibleChunks.minChunkY = Math.max(
     0,
-    Math.floor((viewport.y - chunkSizePixels) / chunkSizePixels),
+    Math.floor(viewport.y / chunkSizePixels),
   );
   draft.visibleChunks.maxChunkY = Math.ceil(
-    (viewport.y + viewport.height + chunkSizePixels) / chunkSizePixels,
+    (viewport.y + viewport.height) / chunkSizePixels,
   );
 }
