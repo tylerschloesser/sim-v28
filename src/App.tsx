@@ -40,15 +40,6 @@ export function App() {
 
   useKeyboard({ setState });
 
-  // Calculate which tiles to highlight based on current action
-  // Yellow for mining, blue for uncovering
-  let highlightedTiles = new Set<string>();
-  let highlightColor = "red"; // default
-  if (state.action) {
-    highlightedTiles = new Set([state.action.tileId]);
-    highlightColor = state.action.type === "mine" ? "yellow" : "blue";
-  }
-
   return (
     <>
       <svg
@@ -67,10 +58,7 @@ export function App() {
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
           <TileGrid world={state.world} visibleChunks={state.visibleChunks} />
-          <TileHighlight
-            highlightedTiles={highlightedTiles}
-            color={highlightColor}
-          />
+          <TileHighlight action={state.action} />
         </g>
         <circle
           cx={window.innerWidth / 2}

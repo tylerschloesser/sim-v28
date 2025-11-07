@@ -111,54 +111,47 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           }
         }
 
-        // Check if player moved to a different tile (cancel action if so)
-        const playerMovedTiles =
-          draft.action && draft.action.tileId !== currentTileId;
-        if (playerMovedTiles) {
-          draft.action = null;
-        }
-
-        // Handle action progression with spacebar
-        const spacebarPressed = keysPressed.current.has(" ");
-        if (spacebarPressed && availableAction) {
-          // Check if we need to start a new action
+        // Set action proactively when available action changes or player moves tiles
+        if (availableAction) {
+          // Check if we need to create/update the action
           if (
             !draft.action ||
             draft.action.tileId !== currentTileId ||
             draft.action.type !== availableAction
           ) {
-            // Initialize new action
+            // Initialize new action at current position
             draft.action = {
               type: availableAction,
               tileId: currentTileId,
               progress: 0,
             };
-          } else {
-            // Continue existing action
-            const actionTimeMs =
-              availableAction === "mine" ? MINE_TIME_MS : UNCOVER_TIME_MS;
-            const progressIncrement = deltaTime / (actionTimeMs / 1000);
-            draft.action.progress += progressIncrement;
-
-            // Check if action is complete
-            if (draft.action.progress >= 1) {
-              if (availableAction === "mine" && tile.resource) {
-                // Add resource to inventory
-                draft.inventory[tile.resource] += 1;
-                // Reset progress to remainder for continuous mining
-                draft.action.progress = draft.action.progress - 1.0;
-              } else if (availableAction === "uncover") {
-                // Uncover the tile
-                tile.covered = false;
-                // Clear action (uncovering is one-time)
-                draft.action = null;
-              }
-            }
           }
         } else {
-          // Clear action if spacebar not pressed or no action available
-          if (draft.action) {
-            draft.action = null;
+          // No available action - clear action
+          draft.action = null;
+        }
+
+        // Make progress on action only when spacebar is pressed
+        const spacebarPressed = keysPressed.current.has(" ");
+        if (spacebarPressed && draft.action) {
+          const actionTimeMs =
+            draft.action.type === "mine" ? MINE_TIME_MS : UNCOVER_TIME_MS;
+          const progressIncrement = deltaTime / (actionTimeMs / 1000);
+          draft.action.progress += progressIncrement;
+
+          // Check if action is complete
+          if (draft.action.progress >= 1) {
+            if (draft.action.type === "mine" && tile?.resource) {
+              // Add resource to inventory
+              draft.inventory[tile.resource] += 1;
+              // Reset progress to remainder for continuous mining
+              draft.action.progress = draft.action.progress - 1.0;
+            } else if (draft.action.type === "uncover" && tile) {
+              // Uncover the tile
+              tile.covered = false;
+              // Clear action (uncovering is one-time)
+              draft.action = null;
+            }
           }
         }
       });
