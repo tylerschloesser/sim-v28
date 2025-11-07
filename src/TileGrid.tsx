@@ -1,9 +1,9 @@
 import { memo } from "react";
 import type { World } from "./types";
+import { TILE_SIZE } from "./constants";
 
 interface TileGridProps {
   world: World;
-  tileSize: number;
 }
 
 function getTileColor(covered: boolean): string {
@@ -18,20 +18,17 @@ function getTileColor(covered: boolean): string {
   }
 }
 
-export const TileGrid = memo(function TileGrid({
-  world,
-  tileSize,
-}: TileGridProps) {
+export const TileGrid = memo(function TileGrid({ world }: TileGridProps) {
   return (
     <>
       {world.map((row, y) =>
         row.map((tile, x) => (
           <rect
             key={`${x}-${y}`}
-            x={x * tileSize}
-            y={y * tileSize}
-            width={tileSize}
-            height={tileSize}
+            x={x * TILE_SIZE}
+            y={y * TILE_SIZE}
+            width={TILE_SIZE}
+            height={TILE_SIZE}
             fill={getTileColor(tile.covered)}
           />
         )),

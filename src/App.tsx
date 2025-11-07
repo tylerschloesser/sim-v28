@@ -1,6 +1,7 @@
 import { useImmer } from "use-immer";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
+import { CollisionHighlight } from "./CollisionHighlight";
 import { useKeyboard } from "./useKeyboard";
 import { DebugOverlay } from "./DebugOverlay";
 import type { AppState } from "./types";
@@ -40,7 +41,8 @@ export function App() {
         <g
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
-          <TileGrid world={state.world} tileSize={TILE_SIZE} />
+          <TileGrid world={state.world} />
+          <CollisionHighlight collidingTiles={state.collidingTiles} />
         </g>
         <circle
           cx={window.innerWidth / 2}
