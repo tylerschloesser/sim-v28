@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import type { Player } from "./types";
+import { useEffect, useRef } from "react";
+import type { Updater } from "use-immer";
+import type { AppState } from "./types";
 
 interface UseKeyboardOptions {
   speed: number;
-  initialPosition: Player;
+  setState: Updater<AppState>;
 }
 
-export function useKeyboard({ speed, initialPosition }: UseKeyboardOptions) {
-  const [player, setPlayer] = useState<Player>(initialPosition);
+export function useKeyboard({ speed, setState }: UseKeyboardOptions) {
   const keysPressed = useRef<Set<string>>(new Set());
 
   // Handle keyboard input
@@ -38,28 +38,26 @@ export function useKeyboard({ speed, initialPosition }: UseKeyboardOptions) {
     let animationFrameId: number;
 
     const updatePlayer = () => {
-      setPlayer((prev) => {
-        let dx = 0;
-        let dy = 0;
+      let dx = 0;
+      let dy = 0;
 
-        if (keysPressed.current.has("w")) dy -= 1;
-        if (keysPressed.current.has("s")) dy += 1;
-        if (keysPressed.current.has("a")) dx -= 1;
-        if (keysPressed.current.has("d")) dx += 1;
+      if (keysPressed.current.has("w")) dy -= 1;
+      if (keysPressed.current.has("s")) dy += 1;
+      if (keysPressed.current.has("a")) dx -= 1;
+      if (keysPressed.current.has("d")) dx += 1;
 
-        // Only update if there's movement
-        if (dx === 0 && dy === 0) return prev;
-
+      // Only update if there's movement
+      if (dx !== 0 || dy !== 0) {
         // Normalize diagonal movement
         const magnitude = Math.sqrt(dx * dx + dy * dy);
         dx = (dx / magnitude) * speed;
         dy = (dy / magnitude) * speed;
 
-        return {
-          x: prev.x + dx,
-          y: prev.y + dy,
-        };
-      });
+        setState((draft) => {
+          draft.player.x += dx;
+          draft.player.y += dy;
+        });
+      }
 
       animationFrameId = requestAnimationFrame(updatePlayer);
     };
@@ -69,7 +67,5 @@ export function useKeyboard({ speed, initialPosition }: UseKeyboardOptions) {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [speed]);
-
-  return player;
+  }, [speed, setState]);
 }

@@ -11,8 +11,10 @@
     "check": "tsc -b --noEmit && eslint . --max-warnings=0 --fix --cache && prettier --write . --cache --log-level warn"
   },
   "dependencies": {
+    "immer": "^10.2.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "use-immer": "^0.11.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

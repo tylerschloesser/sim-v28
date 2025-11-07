@@ -1,7 +1,9 @@
 import { useMemo } from "react";
+import { useImmer } from "use-immer";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { useKeyboard } from "./useKeyboard";
+import type { AppState } from "./types";
 
 // Configuration constants
 const WORLD_SIZE = 128;
@@ -9,16 +11,21 @@ const TILE_SIZE = 32;
 const PLAYER_SPEED = 5; // pixels per frame
 
 export function App() {
-  // Generate world once on mount
-  const world = useMemo(() => generateWorld(WORLD_SIZE), []);
-
   // Player starts at center of world
   const worldCenterX = (WORLD_SIZE * TILE_SIZE) / 2;
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
-  const player = useKeyboard({
+  // Generate world once on mount
+  const world = useMemo(() => generateWorld(WORLD_SIZE), []);
+
+  const [state, setState] = useImmer<AppState>({
+    player: { x: worldCenterX, y: worldCenterY },
+    world,
+  });
+
+  useKeyboard({
     speed: PLAYER_SPEED,
-    initialPosition: { x: worldCenterX, y: worldCenterY },
+    setState,
   });
 
   return (
@@ -35,9 +42,9 @@ export function App() {
       }}
     >
       <g
-        transform={`translate(${window.innerWidth / 2 - player.x}, ${window.innerHeight / 2 - player.y})`}
+        transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
       >
-        <TileGrid world={world} tileSize={TILE_SIZE} />
+        <TileGrid world={state.world} tileSize={TILE_SIZE} />
       </g>
       <circle
         cx={window.innerWidth / 2}
