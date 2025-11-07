@@ -5,6 +5,7 @@ import {
   COLLISION_PADDING,
   PLAYER_SPEED,
   PLAYER_ACCELERATION,
+  PLAYER_FRICTION,
   TILE_SIZE,
 } from "./constants";
 import { isEqual } from "lodash-es";
@@ -164,9 +165,8 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           draft.player.vy += inputY * PLAYER_ACCELERATION;
         } else {
           // Apply friction when no input (decelerate)
-          const friction = 0.9;
-          draft.player.vx *= friction;
-          draft.player.vy *= friction;
+          draft.player.vx *= PLAYER_FRICTION;
+          draft.player.vy *= PLAYER_FRICTION;
 
           // Stop completely if velocity is very small
           if (Math.abs(draft.player.vx) < 0.01) draft.player.vx = 0;
