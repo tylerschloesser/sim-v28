@@ -5,7 +5,7 @@ import {
   COLLISION_PADDING,
   PLAYER_SPEED,
   PLAYER_ACCELERATION,
-  PLAYER_FRICTION,
+  PLAYER_DECELERATION,
   TILE_SIZE,
 } from "./constants";
 import { isEqual } from "lodash-es";
@@ -168,13 +168,26 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           draft.player.vx += inputX * PLAYER_ACCELERATION * deltaTime;
           draft.player.vy += inputY * PLAYER_ACCELERATION * deltaTime;
         } else {
-          // Apply friction when no input (decelerate)
-          draft.player.vx *= PLAYER_FRICTION;
-          draft.player.vy *= PLAYER_FRICTION;
+          // Apply deceleration when no input
+          const currentSpeed = Math.sqrt(
+            draft.player.vx * draft.player.vx +
+              draft.player.vy * draft.player.vy,
+          );
 
-          // Stop completely if velocity is very small (0.01 tiles/s)
-          if (Math.abs(draft.player.vx) < 0.01) draft.player.vx = 0;
-          if (Math.abs(draft.player.vy) < 0.01) draft.player.vy = 0;
+          if (currentSpeed > 0) {
+            const decelerationAmount = PLAYER_DECELERATION * deltaTime;
+
+            if (decelerationAmount >= currentSpeed) {
+              // Would overshoot, stop completely
+              draft.player.vx = 0;
+              draft.player.vy = 0;
+            } else {
+              // Apply deceleration proportionally in the opposite direction of velocity
+              const decelerationFactor = decelerationAmount / currentSpeed;
+              draft.player.vx -= draft.player.vx * decelerationFactor;
+              draft.player.vy -= draft.player.vy * decelerationFactor;
+            }
+          }
         }
 
         // Clamp velocity to max speed (tiles/s)
