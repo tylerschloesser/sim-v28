@@ -103,6 +103,12 @@ export function App() {
       >
         <TileGrid world={world} tileSize={TILE_SIZE} />
       </g>
+      <circle
+        cx={window.innerWidth / 2}
+        cy={window.innerHeight / 2}
+        r={4}
+        fill="#0000ff"
+      />
     </svg>
   );
 }

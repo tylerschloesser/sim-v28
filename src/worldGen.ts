@@ -1,8 +1,8 @@
 import type { World, Tile } from "./types";
 
 function randomColor(): string {
-  const h = Math.floor(Math.random() * 360);
-  return `hsl(${h}, 50%, 50%)`;
+  const lightness = Math.floor(Math.random() * 100);
+  return `hsl(0, 0%, ${lightness}%)`;
 }
 
 export function generateWorld(size: number): World {
