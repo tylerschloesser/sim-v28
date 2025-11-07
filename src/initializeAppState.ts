@@ -4,13 +4,14 @@ import type { AppState } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
 
 export function initializeAppState(): AppState {
-  const world = generateWorld(WORLD_SIZE);
+  const tiles = generateWorld(WORLD_SIZE);
   const worldCenterX = (WORLD_SIZE * TILE_SIZE) / 2;
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
   const state: AppState = {
     player: { x: worldCenterX, y: worldCenterY, vx: 0, vy: 0 },
-    world,
+    tiles,
+    entities: {},
     viewport: { x: 0, y: 0, width: 0, height: 0 },
     visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
     action: null,
@@ -24,6 +25,7 @@ export function initializeAppState(): AppState {
       "wood-storage": 0,
     },
     inventoryOpen: false,
+    selectedItem: null,
     craftQueue: [],
   };
 

@@ -7,7 +7,7 @@ import type {
   ResourceType,
   ItemType,
 } from "./types";
-import { ITEM_COLORS, RECIPES } from "./constants";
+import { ENTITY_DEFINITIONS, ITEM_COLORS, RECIPES } from "./constants";
 
 interface InventoryModalProps {
   inventory: Inventory;
@@ -15,6 +15,8 @@ interface InventoryModalProps {
   onOpenChange: (open: boolean) => void;
   craftQueue: CraftQueueEntry[];
   onCraft: (recipe: Recipe) => void;
+  selectedItem: ItemType | null;
+  onSelectItem: (item: ItemType | null) => void;
 }
 
 export function InventoryModal({
@@ -23,6 +25,8 @@ export function InventoryModal({
   onOpenChange,
   craftQueue,
   onCraft,
+  selectedItem,
+  onSelectItem,
 }: InventoryModalProps) {
   // Separate resources and crafted items
   const resources: [ResourceType, number][] = [];
@@ -159,48 +163,63 @@ export function InventoryModal({
               <div
                 style={{ display: "flex", flexDirection: "column", gap: "8px" }}
               >
-                {craftedItems.map(([item, amount]) => (
-                  <div
-                    key={item}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "10px 12px",
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      borderRadius: "6px",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
+                {craftedItems.map(([item, amount]) => {
+                  const isPlaceable = ENTITY_DEFINITIONS[item].placeable;
+                  const isClickable = isPlaceable && amount > 0;
+                  const isSelected = selectedItem === item;
+
+                  return (
                     <div
+                      key={item}
+                      onClick={() =>
+                        isClickable && onSelectItem(isSelected ? null : item)
+                      }
                       style={{
                         display: "flex",
+                        justifyContent: "space-between",
                         alignItems: "center",
-                        gap: "10px",
+                        padding: "10px 12px",
+                        backgroundColor: isSelected
+                          ? "rgba(100, 200, 100, 0.2)"
+                          : "rgba(255, 255, 255, 0.05)",
+                        borderRadius: "6px",
+                        border: isSelected
+                          ? "2px solid rgba(100, 200, 100, 0.8)"
+                          : "1px solid rgba(255, 255, 255, 0.1)",
+                        cursor: isClickable ? "pointer" : "default",
+                        opacity: amount === 0 ? 0.5 : 1,
                       }}
                     >
                       <div
                         style={{
-                          width: "20px",
-                          height: "20px",
-                          backgroundColor: ITEM_COLORS[item],
-                          borderRadius: "3px",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: "14px",
-                          textTransform: "capitalize",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
                         }}
                       >
-                        {item.replace("-", " ")}
+                        <div
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            backgroundColor: ITEM_COLORS[item],
+                            borderRadius: "3px",
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: "14px",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {item.replace("-", " ")}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                        {amount}
                       </span>
                     </div>
-                    <span style={{ fontSize: "16px", fontWeight: "bold" }}>
-                      {amount}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
                 {craftedItems.length === 0 && (
                   <div
                     style={{

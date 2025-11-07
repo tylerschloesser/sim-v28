@@ -8,17 +8,17 @@ import { COLLISION_PADDING, TILE_SIZE } from "./constants";
 function isTileUncovered(
   tileX: number,
   tileY: number,
-  world: ReadonlyWorld,
+  tiles: ReadonlyWorld,
 ): boolean {
   if (
     tileY < 0 ||
-    tileY >= world.length ||
+    tileY >= tiles.length ||
     tileX < 0 ||
-    tileX >= world[0].length
+    tileX >= tiles[0].length
   ) {
     return false; // Out of bounds is not uncovered
   }
-  return !world[tileY][tileX].covered;
+  return !tiles[tileY][tileX].covered;
 }
 
 /**
@@ -28,19 +28,19 @@ function isTileUncovered(
 export function isCoveredTileAdjacentToUncovered(
   tileX: number,
   tileY: number,
-  world: ReadonlyWorld,
+  tiles: ReadonlyWorld,
 ): boolean {
   // Must be in bounds
   if (
     tileY < 0 ||
-    tileY >= world.length ||
+    tileY >= tiles.length ||
     tileX < 0 ||
-    tileX >= world[0].length
+    tileX >= tiles[0].length
   ) {
     return false;
   }
 
-  const tile = world[tileY][tileX];
+  const tile = tiles[tileY][tileX];
 
   // Must be covered
   if (!tile.covered) {
@@ -56,7 +56,7 @@ export function isCoveredTileAdjacentToUncovered(
   ];
 
   for (const { dx, dy } of adjacentOffsets) {
-    if (isTileUncovered(tileX + dx, tileY + dy, world)) {
+    if (isTileUncovered(tileX + dx, tileY + dy, tiles)) {
       return true;
     }
   }
@@ -71,19 +71,19 @@ export function isCoveredTileAdjacentToUncovered(
 function isTileWalkable(
   tileX: number,
   tileY: number,
-  world: ReadonlyWorld,
+  tiles: ReadonlyWorld,
 ): boolean {
   // Out of bounds is not walkable
   if (
     tileY < 0 ||
-    tileY >= world.length ||
+    tileY >= tiles.length ||
     tileX < 0 ||
-    tileX >= world[0].length
+    tileX >= tiles[0].length
   ) {
     return false;
   }
 
-  const tile = world[tileY][tileX];
+  const tile = tiles[tileY][tileX];
 
   // If uncovered, it's walkable
   if (!tile.covered) {
@@ -91,7 +91,7 @@ function isTileWalkable(
   }
 
   // If covered, check if adjacent to uncovered
-  return isCoveredTileAdjacentToUncovered(tileX, tileY, world);
+  return isCoveredTileAdjacentToUncovered(tileX, tileY, tiles);
 }
 
 /**
@@ -103,13 +103,13 @@ function isTileWalkable(
 export function calculateMovementAndCollision(
   input: MovementInput,
 ): MovementResult {
-  const { currentX, currentY, dx, dy, world } = input;
+  const { currentX, currentY, dx, dy, world: tiles } = input;
 
   // Helper function to check if a position overlaps a non-walkable tile
   const isPositionBlocked = (x: number, y: number): boolean => {
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
-    return !isTileWalkable(tileX, tileY, world);
+    return !isTileWalkable(tileX, tileY, tiles);
   };
 
   // Handle X-axis movement with padding

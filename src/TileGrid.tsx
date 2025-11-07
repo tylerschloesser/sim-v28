@@ -4,12 +4,12 @@ import { TILE_SIZE, CHUNK_SIZE, RESOURCE_COLORS } from "./constants";
 import { isCoveredTileAdjacentToUncovered } from "./playerMovement";
 
 interface TileGridProps {
-  world: World;
+  tiles: World;
   visibleChunks: ChunkBounds;
 }
 
 interface TileChunkProps {
-  world: World;
+  tiles: World;
   chunkX: number; // chunk X index
   chunkY: number; // chunk Y index
 }
@@ -25,12 +25,12 @@ function getTileColor(
   covered: boolean,
   x: number,
   y: number,
-  world: World,
+  tiles: World,
 ): string {
   const random = seededRandom(x, y);
   if (covered) {
     // Check if this covered tile is adjacent to an uncovered tile
-    const isAdjacent = isCoveredTileAdjacentToUncovered(x, y, world);
+    const isAdjacent = isCoveredTileAdjacentToUncovered(x, y, tiles);
     if (isAdjacent) {
       // Covered and adjacent: medium gray (40-60% lightness)
       const lightness = 40 + Math.floor(random * 20);
@@ -91,11 +91,11 @@ function createCheckerboardPattern(
 }
 
 const TileChunk = memo(function TileChunk({
-  world,
+  tiles,
   chunkX,
   chunkY,
 }: TileChunkProps) {
-  const tiles = [];
+  const tileElements = [];
   const resourceOverlays = [];
   const startX = chunkX * CHUNK_SIZE;
   const startY = chunkY * CHUNK_SIZE;
@@ -106,17 +106,17 @@ const TileChunk = memo(function TileChunk({
       const y = startY + dy;
 
       // Bounds check
-      if (y >= world.length || x >= world[y].length) continue;
+      if (y >= tiles.length || x >= tiles[y].length) continue;
 
-      const tile = world[y][x];
-      tiles.push(
+      const tile = tiles[y][x];
+      tileElements.push(
         <rect
           key={`${x}-${y}`}
           x={x * TILE_SIZE}
           y={y * TILE_SIZE}
           width={TILE_SIZE}
           height={TILE_SIZE}
-          fill={getTileColor(tile.covered, x, y, world)}
+          fill={getTileColor(tile.covered, x, y, tiles)}
         />,
       );
 
@@ -131,14 +131,14 @@ const TileChunk = memo(function TileChunk({
 
   return (
     <g data-chunk={`${chunkX},${chunkY}`}>
-      {tiles}
+      {tileElements}
       {resourceOverlays}
     </g>
   );
 });
 
 export const TileGrid = memo(function TileGrid({
-  world,
+  tiles,
   visibleChunks,
 }: TileGridProps) {
   const chunks = [];
@@ -149,7 +149,7 @@ export const TileGrid = memo(function TileGrid({
       chunks.push(
         <TileChunk
           key={`chunk-${chunkX}-${chunkY}`}
-          world={world}
+          tiles={tiles}
           chunkX={chunkX}
           chunkY={chunkY}
         />,

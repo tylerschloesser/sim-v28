@@ -1,4 +1,10 @@
-import type { ResourceType, ItemType, Recipe, CraftedItemType } from "./types";
+import type {
+  ResourceType,
+  ItemType,
+  Recipe,
+  CraftedItemType,
+  EntityDefinition,
+} from "./types";
 
 export const WORLD_SIZE = 128;
 export const TILE_SIZE = 32;
@@ -40,4 +46,16 @@ export const RECIPES: Record<CraftedItemType, Recipe> = {
     },
     craftTime: CRAFT_TIME_MS,
   },
+};
+
+export const ENTITY_DEFINITIONS: Record<ItemType, EntityDefinition> = {
+  // Resources are not placeable
+  stone: { size: { width: 1, height: 1 }, placeable: false },
+  wood: { size: { width: 1, height: 1 }, placeable: false },
+  iron: { size: { width: 1, height: 1 }, placeable: false },
+  copper: { size: { width: 1, height: 1 }, placeable: false },
+  coal: { size: { width: 1, height: 1 }, placeable: false },
+  // Crafted items are placeable
+  "stone-furnace": { size: { width: 2, height: 2 }, placeable: true },
+  "wood-storage": { size: { width: 2, height: 2 }, placeable: true },
 };

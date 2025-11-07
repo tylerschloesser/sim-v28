@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import {
+  ENTITY_DEFINITIONS,
   MINE_TIME_MS,
   PLAYER_ACCELERATION,
   PLAYER_SPEED,
@@ -33,6 +34,12 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
       if (key === "e") {
         setState((draft) => {
           draft.inventoryOpen = !draft.inventoryOpen;
+        });
+      }
+      // Deselect item with 'q' key
+      if (key === "q") {
+        setState((draft) => {
+          draft.selectedItem = null;
         });
       }
     };
@@ -88,7 +95,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
             currentY: draft.player.y,
             dx,
             dy,
-            world: draft.world,
+            world: draft.tiles,
           });
 
           // Apply mutations to draft
@@ -104,7 +111,96 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
         const playerTileX = Math.floor(draft.player.x / TILE_SIZE);
         const playerTileY = Math.floor(draft.player.y / TILE_SIZE);
         const currentTileId = tileToId(playerTileX, playerTileY);
-        const tile = draft.world[playerTileY]?.[playerTileX];
+        const tile = draft.tiles[playerTileY]?.[playerTileX];
+
+        // Build action takes precedence when an item is selected
+        if (draft.selectedItem) {
+          const entityDef = ENTITY_DEFINITIONS[draft.selectedItem];
+          if (entityDef.placeable) {
+            // Calculate where entity would be placed
+            // Center entity on player position, round to tile alignment
+            const entityWidth = entityDef.size.width;
+            const entityHeight = entityDef.size.height;
+
+            // Center the entity on the player's tile position
+            const centerX = playerTileX;
+            const centerY = playerTileY;
+
+            // Calculate top-left position (entity position is always top-left)
+            const targetX = Math.floor(centerX - entityWidth / 2 + 0.5);
+            const targetY = Math.floor(centerY - entityHeight / 2 + 0.5);
+
+            // Check if placement is valid
+            let isValid = true;
+            for (let dy = 0; dy < entityHeight; dy++) {
+              for (let dx = 0; dx < entityWidth; dx++) {
+                const checkX = targetX + dx;
+                const checkY = targetY + dy;
+
+                // Check bounds
+                if (
+                  checkY < 0 ||
+                  checkY >= draft.tiles.length ||
+                  checkX < 0 ||
+                  checkX >= draft.tiles[0].length
+                ) {
+                  isValid = false;
+                  break;
+                }
+
+                const checkTile = draft.tiles[checkY][checkX];
+
+                // Tile must be uncovered and not have an entity
+                if (checkTile.covered || checkTile.entityId) {
+                  isValid = false;
+                  break;
+                }
+              }
+              if (!isValid) break;
+            }
+
+            // Set build action
+            draft.action = {
+              type: "build",
+              itemType: draft.selectedItem,
+              valid: isValid,
+              targetX,
+              targetY,
+            };
+
+            // Handle spacebar press for building
+            const spacebarPressed = keysPressed.current.has(" ");
+            if (spacebarPressed && isValid) {
+              // Create entity
+              const entityId = `entity-${Date.now()}`;
+              draft.entities[entityId] = {
+                id: entityId,
+                type: draft.selectedItem,
+                x: targetX,
+                y: targetY,
+              };
+
+              // Mark tiles with entityId
+              for (let dy = 0; dy < entityHeight; dy++) {
+                for (let dx = 0; dx < entityWidth; dx++) {
+                  const markX = targetX + dx;
+                  const markY = targetY + dy;
+                  draft.tiles[markY][markX].entityId = entityId;
+                }
+              }
+
+              // Consume from inventory
+              draft.inventory[draft.selectedItem] -= 1;
+
+              // Clear selected item
+              draft.selectedItem = null;
+              draft.action = null;
+            }
+
+            // Skip other action logic when build action is active
+            return;
+          }
+        }
 
         // Determine what action is available at current position
         let availableAction: "uncover" | "mine" | null = null;
@@ -121,11 +217,12 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
         // Set action proactively when available action changes or player moves tiles
         if (availableAction) {
           // Check if we need to create/update the action
-          if (
+          const needsUpdate =
             !draft.action ||
-            draft.action.tileId !== currentTileId ||
-            draft.action.type !== availableAction
-          ) {
+            draft.action.type !== availableAction ||
+            ("tileId" in draft.action && draft.action.tileId !== currentTileId);
+
+          if (needsUpdate) {
             // Initialize new action at current position
             draft.action = {
               type: availableAction,
@@ -140,7 +237,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
 
         // Make progress on action only when spacebar is pressed
         const spacebarPressed = keysPressed.current.has(" ");
-        if (spacebarPressed && draft.action) {
+        if (spacebarPressed && draft.action && draft.action.type !== "build") {
           const actionTimeMs =
             draft.action.type === "mine" ? MINE_TIME_MS : UNCOVER_TIME_MS;
           const progressIncrement = deltaTime / (actionTimeMs / 1000);

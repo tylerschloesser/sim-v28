@@ -4,15 +4,20 @@ import type {
   ChunkBounds,
   UncoverAction,
   MineAction,
+  BuildAction,
   Inventory,
+  ItemType,
+  Entity,
 } from "./types";
 
 interface DebugOverlayProps {
   player: Player;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: UncoverAction | MineAction | null;
+  action: UncoverAction | MineAction | BuildAction | null;
   inventory: Inventory;
+  selectedItem: ItemType | null;
+  entities: Record<string, Entity>;
 }
 
 export function DebugOverlay({
@@ -21,6 +26,8 @@ export function DebugOverlay({
   visibleChunks,
   action,
   inventory,
+  selectedItem,
+  entities,
 }: DebugOverlayProps) {
   return (
     <div
@@ -64,12 +71,30 @@ export function DebugOverlay({
       {action ? (
         <>
           <div>type: {action.type}</div>
-          <div>tile: {action.tileId}</div>
-          <div>progress: {(action.progress * 100).toFixed(1)}%</div>
+          {action.type === "build" ? (
+            <>
+              <div>item: {action.itemType}</div>
+              <div>valid: {action.valid ? "yes" : "no"}</div>
+              <div>
+                pos: ({action.targetX}, {action.targetY})
+              </div>
+            </>
+          ) : (
+            <>
+              <div>tile: {action.tileId}</div>
+              <div>progress: {(action.progress * 100).toFixed(1)}%</div>
+            </>
+          )}
         </>
       ) : (
         <div>none</div>
       )}
+
+      <div style={{ marginTop: "10px" }}>Selected Item:</div>
+      <div>{selectedItem || "none"}</div>
+
+      <div style={{ marginTop: "10px" }}>Entities:</div>
+      <div>count: {Object.keys(entities).length}</div>
 
       <div style={{ marginTop: "10px" }}>Inventory:</div>
       <div>stone: {inventory.stone}</div>

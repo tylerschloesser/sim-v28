@@ -1,6 +1,8 @@
 import { useImmer } from "use-immer";
 import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
+import { EntityRenderer } from "./EntityRenderer";
+import { BuildPreview } from "./BuildPreview";
 import { useKeyboard } from "./useKeyboard";
 import { useCrafting } from "./useCrafting";
 import { DebugOverlay } from "./DebugOverlay";
@@ -56,7 +58,14 @@ export function App() {
         <g
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
-          <TileGrid world={state.world} visibleChunks={state.visibleChunks} />
+          <TileGrid tiles={state.tiles} visibleChunks={state.visibleChunks} />
+          <EntityRenderer
+            entities={state.entities}
+            visibleChunks={state.visibleChunks}
+          />
+          {state.action?.type === "build" && (
+            <BuildPreview action={state.action} />
+          )}
           <TileHighlight action={state.action} />
         </g>
         <circle
@@ -77,6 +86,12 @@ export function App() {
         }
         craftQueue={state.craftQueue}
         onCraft={handleCraft}
+        selectedItem={state.selectedItem}
+        onSelectItem={(item) =>
+          setState((draft) => {
+            draft.selectedItem = item;
+          })
+        }
       />
       <DebugOverlay
         player={state.player}
@@ -84,6 +99,8 @@ export function App() {
         visibleChunks={state.visibleChunks}
         action={state.action}
         inventory={state.inventory}
+        selectedItem={state.selectedItem}
+        entities={state.entities}
       />
     </>
   );

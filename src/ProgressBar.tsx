@@ -1,12 +1,16 @@
-import type { UncoverAction, MineAction } from "./types";
+import type { UncoverAction, MineAction, BuildAction } from "./types";
 
 interface ProgressBarProps {
-  action: UncoverAction | MineAction | null;
+  action: UncoverAction | MineAction | BuildAction | null;
 }
 
 export function ProgressBar({ action }: ProgressBarProps) {
-  // Hide if no action or progress is 0
-  if (!action || action.progress === 0) {
+  // Hide if no action, build action, or progress is 0
+  if (!action || action.type === "build") {
+    return null;
+  }
+
+  if (action.progress === 0) {
     return null;
   }
 

@@ -7,9 +7,25 @@ export type ItemType = ResourceType | CraftedItemType;
 export interface Tile {
   covered: boolean;
   resource?: ResourceType;
+  entityId?: string;
 }
 
 export type World = Tile[][];
+
+export interface Entity {
+  id: string;
+  type: ItemType;
+  x: number; // top-left tile X position
+  y: number; // top-left tile Y position
+}
+
+export interface EntityDefinition {
+  size: {
+    width: number; // width in tiles
+    height: number; // height in tiles
+  };
+  placeable: boolean;
+}
 
 export interface Player {
   x: number;
@@ -44,6 +60,14 @@ export interface MineAction {
   progress: number; // 0-1, resets to remainder on completion
 }
 
+export interface BuildAction {
+  type: "build";
+  itemType: ItemType;
+  valid: boolean;
+  targetX: number; // top-left tile X position where entity would be placed
+  targetY: number; // top-left tile Y position where entity would be placed
+}
+
 export interface Recipe {
   ingredients: Partial<Record<ItemType, number>>;
   craftTime: number; // milliseconds
@@ -59,12 +83,14 @@ export type Inventory = Record<ItemType, number>;
 
 export interface AppState {
   player: Player;
-  world: World;
+  tiles: World;
+  entities: Record<string, Entity>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: UncoverAction | MineAction | null;
+  action: UncoverAction | MineAction | BuildAction | null;
   inventory: Inventory;
   inventoryOpen: boolean;
+  selectedItem: ItemType | null;
   craftQueue: CraftQueueEntry[];
 }
 
