@@ -5,7 +5,6 @@ import {
   COLLISION_PADDING,
   PLAYER_SPEED,
   PLAYER_ACCELERATION,
-  PLAYER_DECELERATION,
   TILE_SIZE,
 } from "./constants";
 import { isEqual } from "lodash-es";
@@ -163,31 +162,19 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           inputY /= inputMagnitude;
         }
 
-        // Apply acceleration in the direction of input (tiles/s^2 * deltaTime)
-        if (inputX !== 0 || inputY !== 0) {
+        // Apply acceleration or stop per axis based on input
+        if (inputX !== 0) {
           draft.player.vx += inputX * PLAYER_ACCELERATION * deltaTime;
+        } else {
+          // Stop immediately when no input on this axis
+          draft.player.vx = 0;
+        }
+
+        if (inputY !== 0) {
           draft.player.vy += inputY * PLAYER_ACCELERATION * deltaTime;
         } else {
-          // Apply deceleration when no input
-          const currentSpeed = Math.sqrt(
-            draft.player.vx * draft.player.vx +
-              draft.player.vy * draft.player.vy,
-          );
-
-          if (currentSpeed > 0) {
-            const decelerationAmount = PLAYER_DECELERATION * deltaTime;
-
-            if (decelerationAmount >= currentSpeed) {
-              // Would overshoot, stop completely
-              draft.player.vx = 0;
-              draft.player.vy = 0;
-            } else {
-              // Apply deceleration proportionally in the opposite direction of velocity
-              const decelerationFactor = decelerationAmount / currentSpeed;
-              draft.player.vx -= draft.player.vx * decelerationFactor;
-              draft.player.vy -= draft.player.vy * decelerationFactor;
-            }
-          }
+          // Stop immediately when no input on this axis
+          draft.player.vy = 0;
         }
 
         // Clamp velocity to max speed (tiles/s)
