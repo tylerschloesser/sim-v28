@@ -1,7 +1,7 @@
 import { useImmer } from "use-immer";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
-import { CollisionHighlight } from "./CollisionHighlight";
+import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
 import { useMining } from "./useMining";
 import { DebugOverlay } from "./DebugOverlay";
@@ -36,6 +36,19 @@ export function App() {
   useKeyboard({ setState });
   useMining({ setState });
 
+  // Calculate which tiles to highlight:
+  // Priority 1: Show collision tiles if any exist
+  // Priority 2: Show resource tile if player is standing on one
+  let highlightedTiles = state.collidingTiles;
+  if (highlightedTiles.size === 0) {
+    const playerTileX = Math.floor(state.player.x / TILE_SIZE);
+    const playerTileY = Math.floor(state.player.y / TILE_SIZE);
+    const tile = state.world[playerTileY]?.[playerTileX];
+    if (tile?.resource) {
+      highlightedTiles = new Set([`${playerTileX},${playerTileY}`]);
+    }
+  }
+
   return (
     <>
       <svg
@@ -54,7 +67,7 @@ export function App() {
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
           <TileGrid world={state.world} visibleChunks={state.visibleChunks} />
-          <CollisionHighlight collidingTiles={state.collidingTiles} />
+          <TileHighlight highlightedTiles={highlightedTiles} />
         </g>
         <circle
           cx={window.innerWidth / 2}

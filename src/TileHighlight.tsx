@@ -1,20 +1,20 @@
 import { memo } from "react";
 import { TILE_SIZE } from "./constants";
 
-interface CollisionHighlightProps {
-  collidingTiles: Set<string>;
+interface TileHighlightProps {
+  highlightedTiles: Set<string>;
 }
 
-export const CollisionHighlight = memo(function CollisionHighlight({
-  collidingTiles,
-}: CollisionHighlightProps) {
+export const TileHighlight = memo(function TileHighlight({
+  highlightedTiles,
+}: TileHighlightProps) {
   return (
     <g>
-      {Array.from(collidingTiles).map((tileKey) => {
+      {Array.from(highlightedTiles).map((tileKey) => {
         const [x, y] = tileKey.split(",").map(Number);
         return (
           <rect
-            key={`collision-${tileKey}`}
+            key={`highlight-${tileKey}`}
             x={x * TILE_SIZE}
             y={y * TILE_SIZE}
             width={TILE_SIZE}
