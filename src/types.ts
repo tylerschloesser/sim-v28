@@ -3,3 +3,8 @@ export interface Tile {
 }
 
 export type World = Tile[][];
+
+export interface Camera {
+  x: number;
+  y: number;
+}
