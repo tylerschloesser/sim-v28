@@ -118,17 +118,17 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           const entityDef = ENTITY_DEFINITIONS[draft.selectedItem];
           if (entityDef.placeable) {
             // Calculate where entity would be placed
-            // Center entity on player position, round to tile alignment
+            // Center entity on player's pixel position, then round to tile alignment
             const entityWidth = entityDef.size.width;
             const entityHeight = entityDef.size.height;
 
-            // Center the entity on the player's tile position
-            const centerX = playerTileX;
-            const centerY = playerTileY;
+            // Calculate center position in tile coordinates (player position / TILE_SIZE)
+            const playerTileXExact = draft.player.x / TILE_SIZE;
+            const playerTileYExact = draft.player.y / TILE_SIZE;
 
-            // Calculate top-left position (entity position is always top-left)
-            const targetX = Math.floor(centerX - entityWidth / 2 + 0.5);
-            const targetY = Math.floor(centerY - entityHeight / 2 + 0.5);
+            // Calculate top-left position and round to nearest tile
+            const targetX = Math.round(playerTileXExact - entityWidth / 2);
+            const targetY = Math.round(playerTileYExact - entityHeight / 2);
 
             // Check if placement is valid
             let isValid = true;
