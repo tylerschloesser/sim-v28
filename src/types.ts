@@ -68,6 +68,13 @@ export interface BuildAction {
   targetY: number; // top-left tile Y position where entity would be placed
 }
 
+export interface DestroyEntityAction {
+  type: "destroy-entity";
+  entityId: string;
+  tileId: string; // Player's current tile
+  progress: number; // 0-1
+}
+
 export interface Recipe {
   ingredients: Partial<Record<ItemType, number>>;
   craftTime: number; // milliseconds
@@ -87,7 +94,7 @@ export interface AppState {
   entities: Record<string, Entity>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: UncoverAction | MineAction | BuildAction | null;
+  action: UncoverAction | MineAction | BuildAction | DestroyEntityAction | null;
   inventory: Inventory;
   inventoryOpen: boolean;
   selectedItem: ItemType | null;

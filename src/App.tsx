@@ -66,7 +66,7 @@ export function App() {
           {state.action?.type === "build" && (
             <BuildPreview action={state.action} />
           )}
-          <TileHighlight action={state.action} />
+          <TileHighlight state={state} />
         </g>
         <circle
           cx={window.innerWidth / 2}

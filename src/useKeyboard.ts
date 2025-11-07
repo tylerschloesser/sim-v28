@@ -15,6 +15,8 @@ import {
 import { tileToId } from "./tileUtils";
 import type { AppState } from "./types";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
+import { getAvailableAction } from "./actionUtils";
+import { getEntityTiles } from "./entityUtils";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
@@ -202,33 +204,37 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           }
         }
 
-        // Determine what action is available at current position
-        let availableAction: "uncover" | "mine" | null = null;
-        if (tile) {
-          if (tile.covered) {
-            // Covered tiles take priority - must uncover before mining
-            availableAction = "uncover";
-          } else if (tile.resource) {
-            // Uncovered tiles with resources can be mined
-            availableAction = "mine";
-          }
-        }
+        // Determine what action is available at current position using shared logic
+        const availableActionType = getAvailableAction(
+          playerTileX,
+          playerTileY,
+          draft,
+        );
 
         // Set action proactively when available action changes or player moves tiles
-        if (availableAction) {
+        if (availableActionType) {
           // Check if we need to create/update the action
           const needsUpdate =
             !draft.action ||
-            draft.action.type !== availableAction ||
+            draft.action.type !== availableActionType ||
             ("tileId" in draft.action && draft.action.tileId !== currentTileId);
 
           if (needsUpdate) {
             // Initialize new action at current position
-            draft.action = {
-              type: availableAction,
-              tileId: currentTileId,
-              progress: 0,
-            };
+            if (availableActionType === "destroy-entity") {
+              draft.action = {
+                type: "destroy-entity",
+                entityId: tile?.entityId || "",
+                tileId: currentTileId,
+                progress: 0,
+              };
+            } else {
+              draft.action = {
+                type: availableActionType,
+                tileId: currentTileId,
+                progress: 0,
+              };
+            }
           }
         } else {
           // No available action - clear action
@@ -239,7 +245,11 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
         const spacebarPressed = keysPressed.current.has(" ");
         if (spacebarPressed && draft.action && draft.action.type !== "build") {
           const actionTimeMs =
-            draft.action.type === "mine" ? MINE_TIME_MS : UNCOVER_TIME_MS;
+            draft.action.type === "mine"
+              ? MINE_TIME_MS
+              : draft.action.type === "destroy-entity"
+                ? MINE_TIME_MS
+                : UNCOVER_TIME_MS;
           const progressIncrement = deltaTime / (actionTimeMs / 1000);
           draft.action.progress += progressIncrement;
 
@@ -254,6 +264,31 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
               // Uncover the tile
               tile.covered = false;
               // Clear action (uncovering is one-time)
+              draft.action = null;
+            } else if (draft.action.type === "destroy-entity") {
+              // Look up entity and return it to inventory
+              const entity = draft.entities[draft.action.entityId];
+              if (entity) {
+                // Add entity to inventory
+                draft.inventory[entity.type] =
+                  (draft.inventory[entity.type] || 0) + 1;
+
+                // Get all tiles the entity occupies
+                const entityTiles = getEntityTiles(entity);
+
+                // Clear entityId from all occupied tiles
+                for (const tilePos of entityTiles) {
+                  const entityTile = draft.tiles[tilePos.y]?.[tilePos.x];
+                  if (entityTile) {
+                    entityTile.entityId = undefined;
+                  }
+                }
+
+                // Remove entity from entities dictionary
+                delete draft.entities[draft.action.entityId];
+              }
+
+              // Clear action (destroying is one-time)
               draft.action = null;
             }
           }

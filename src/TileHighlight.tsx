@@ -1,24 +1,47 @@
 import { memo } from "react";
-import type { UncoverAction, MineAction, BuildAction } from "./types";
-import { TILE_SIZE } from "./constants";
+import type { AppState } from "./types";
+import { TILE_SIZE, ENTITY_DEFINITIONS } from "./constants";
 import { idToTile } from "./tileUtils";
 
 interface TileHighlightProps {
-  action: UncoverAction | MineAction | BuildAction | null;
+  state: AppState;
 }
 
 export const TileHighlight = memo(function TileHighlight({
-  action,
+  state,
 }: TileHighlightProps) {
+  const { action } = state;
+
   // No action or build action = no highlight
   if (!action || action.type === "build") {
     return null;
   }
 
-  // Derive color from action type
-  const color = action.type === "mine" ? "yellow" : "blue";
+  // Handle destroy-entity action: highlight entire entity as one rectangle
+  if (action.type === "destroy-entity") {
+    const entity = state.entities[action.entityId];
+    if (!entity) return null;
 
-  // Parse tile coordinates from tileId
+    // Get entity definition to determine size
+    const entityDef = ENTITY_DEFINITIONS[entity.type];
+    const width = entityDef.size.width * TILE_SIZE;
+    const height = entityDef.size.height * TILE_SIZE;
+
+    return (
+      <rect
+        x={entity.x * TILE_SIZE}
+        y={entity.y * TILE_SIZE}
+        width={width}
+        height={height}
+        fill="none"
+        stroke="red"
+        strokeWidth={2}
+      />
+    );
+  }
+
+  // Handle uncover and mine actions: highlight single tile
+  const color = action.type === "mine" ? "yellow" : "blue";
   const [x, y] = idToTile(action.tileId);
 
   return (

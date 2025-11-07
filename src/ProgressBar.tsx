@@ -1,7 +1,12 @@
-import type { UncoverAction, MineAction, BuildAction } from "./types";
+import type {
+  UncoverAction,
+  MineAction,
+  BuildAction,
+  DestroyEntityAction,
+} from "./types";
 
 interface ProgressBarProps {
-  action: UncoverAction | MineAction | BuildAction | null;
+  action: UncoverAction | MineAction | BuildAction | DestroyEntityAction | null;
 }
 
 export function ProgressBar({ action }: ProgressBarProps) {
@@ -15,7 +20,12 @@ export function ProgressBar({ action }: ProgressBarProps) {
   }
 
   const percentage = Math.round(action.progress * 100);
-  const actionLabel = action.type === "uncover" ? "Uncovering" : "Mining";
+  const actionLabel =
+    action.type === "uncover"
+      ? "Uncovering"
+      : action.type === "destroy-entity"
+        ? "Destroying"
+        : "Mining";
 
   return (
     <div
@@ -61,7 +71,11 @@ export function ProgressBar({ action }: ProgressBarProps) {
               width: `${percentage}%`,
               height: "100%",
               backgroundColor:
-                action.type === "uncover" ? "#4CAF50" : "#FF9800",
+                action.type === "uncover"
+                  ? "#4CAF50"
+                  : action.type === "destroy-entity"
+                    ? "#F44336"
+                    : "#FF9800",
             }}
           />
         </div>

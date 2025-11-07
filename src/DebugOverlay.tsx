@@ -5,6 +5,7 @@ import type {
   UncoverAction,
   MineAction,
   BuildAction,
+  DestroyEntityAction,
   Inventory,
   ItemType,
   Entity,
@@ -14,7 +15,7 @@ interface DebugOverlayProps {
   player: Player;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: UncoverAction | MineAction | BuildAction | null;
+  action: UncoverAction | MineAction | BuildAction | DestroyEntityAction | null;
   inventory: Inventory;
   selectedItem: ItemType | null;
   entities: Record<string, Entity>;
@@ -83,6 +84,9 @@ export function DebugOverlay({
             <>
               <div>tile: {action.tileId}</div>
               <div>progress: {(action.progress * 100).toFixed(1)}%</div>
+              {action.type === "destroy-entity" && (
+                <div>entity: {action.entityId}</div>
+              )}
             </>
           )}
         </>

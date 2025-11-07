@@ -21,7 +21,7 @@ export function initializeAppState(): AppState {
       iron: 0,
       copper: 0,
       coal: 0,
-      "stone-furnace": 0,
+      "stone-furnace": 1,
       "wood-storage": 0,
     },
     inventoryOpen: false,
