@@ -18,6 +18,7 @@ Always use `bun` instead of `npm` for all package management operations.
 ## TypeScript Configuration
 
 The project uses a composite TypeScript configuration with project references:
+
 - `tsconfig.json` - Root configuration file
 - `tsconfig.app.json` - Configuration for application source code in `src/`
 - `tsconfig.node.json` - Configuration for Node.js tooling files
@@ -47,6 +48,7 @@ This is a React 19 + TypeScript + Vite application with the following structure:
 ## Build Tool Details
 
 This project uses Vite with the following configuration:
+
 - `@vitejs/plugin-react` for Fast Refresh with Babel
 - Dev server with HMR (Hot Module Replacement)
 - Production builds use `tsc -b` for TypeScript compilation followed by `vite build`
@@ -54,12 +56,14 @@ This project uses Vite with the following configuration:
 ## Code Quality
 
 ESLint is configured with:
+
 - TypeScript ESLint recommended rules
 - React Hooks recommended rules
 - React Refresh rules for Vite
 - Browser globals
 
 TypeScript is configured with strict mode and additional checks:
+
 - `noUnusedLocals` and `noUnusedParameters` enabled
 - `noFallthroughCasesInSwitch` enabled
 - `noUncheckedSideEffectImports` enabled
