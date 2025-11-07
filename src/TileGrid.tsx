@@ -13,14 +13,22 @@ interface TileChunkProps {
   chunkY: number; // chunk Y index
 }
 
-function getTileColor(covered: boolean): string {
+// Simple hash function for deterministic "random" based on x,y coordinates
+function seededRandom(x: number, y: number): number {
+  const seed = (x * 73856093) ^ (y * 19349663);
+  const value = Math.sin(seed) * 10000;
+  return value - Math.floor(value);
+}
+
+function getTileColor(covered: boolean, x: number, y: number): string {
+  const random = seededRandom(x, y);
   if (covered) {
-    // Random shade of black (0-20% lightness)
-    const lightness = Math.floor(Math.random() * 20);
+    // Deterministic shade of black (0-20% lightness)
+    const lightness = Math.floor(random * 20);
     return `hsl(0, 0%, ${lightness}%)`;
   } else {
-    // Random shade of white (80-100% lightness)
-    const lightness = 80 + Math.floor(Math.random() * 20);
+    // Deterministic shade of white (80-100% lightness)
+    const lightness = 80 + Math.floor(random * 20);
     return `hsl(0, 0%, ${lightness}%)`;
   }
 }
@@ -50,7 +58,7 @@ const TileChunk = memo(function TileChunk({
           y={y * TILE_SIZE}
           width={TILE_SIZE}
           height={TILE_SIZE}
-          fill={getTileColor(tile.covered)}
+          fill={getTileColor(tile.covered, x, y)}
         />,
       );
     }
