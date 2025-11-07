@@ -1,4 +1,4 @@
-export type ResourceType = "stone" | "wood" | "iron" | "copper";
+export type ResourceType = "stone" | "wood" | "iron" | "copper" | "coal";
 
 export interface Tile {
   covered: boolean;

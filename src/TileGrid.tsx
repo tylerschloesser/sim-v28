@@ -43,6 +43,18 @@ function createCheckerboardPattern(
   const squareSize = TILE_SIZE / 4; // 4x4 grid
   const color = RESOURCE_COLORS[resource];
 
+  // Add transparent black background for contrast
+  squares.push(
+    <rect
+      key={`resource-bg-${tileX}-${tileY}`}
+      x={tileX * TILE_SIZE}
+      y={tileY * TILE_SIZE}
+      width={TILE_SIZE}
+      height={TILE_SIZE}
+      fill="rgba(0, 0, 0, 0.3)"
+    />,
+  );
+
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 4; col++) {
       // Checkerboard pattern: alternate squares
@@ -55,7 +67,6 @@ function createCheckerboardPattern(
             width={squareSize}
             height={squareSize}
             fill={color}
-            opacity={0.6}
           />,
         );
       }

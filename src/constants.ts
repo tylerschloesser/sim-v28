@@ -8,8 +8,9 @@ export const PLAYER_ACCELERATION = 100; // acceleration in tiles per second^2
 export const COLLISION_PADDING = 2; // pixels from tile boundary
 
 export const RESOURCE_COLORS: Record<ResourceType, string> = {
-  stone: "#808080", // gray
-  wood: "#8B4513", // brown
-  iron: "#C0C0C0", // silver
-  copper: "#B87333", // copper
+  iron: "hsl(180, 70%, 80%)", // cyan
+  copper: "hsl(330, 70%, 80%)", // pink
+  stone: "hsl(120, 70%, 80%)", // green
+  coal: "hsl(270, 70%, 80%)", // purple
+  wood: "hsl(30, 70%, 80%)", // orange
 };

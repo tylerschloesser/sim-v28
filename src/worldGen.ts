@@ -8,7 +8,13 @@ export function generateWorld(size: number): World {
 
   // Track which resources have been placed in uncovered area
   const resourcesPlaced = new Set<ResourceType>();
-  const allResources: ResourceType[] = ["stone", "wood", "iron", "copper"];
+  const allResources: ResourceType[] = [
+    "stone",
+    "wood",
+    "iron",
+    "copper",
+    "coal",
+  ];
 
   for (let y = 0; y < size; y++) {
     const row: Tile[] = [];
