@@ -11,6 +11,7 @@ import {
   calculateMovementAndCollision,
   processMovementInput,
 } from "./playerMovement";
+import { tileToId } from "./tileUtils";
 import type { AppState } from "./types";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 
@@ -96,7 +97,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
         // Get player's current tile position
         const playerTileX = Math.floor(draft.player.x / TILE_SIZE);
         const playerTileY = Math.floor(draft.player.y / TILE_SIZE);
-        const currentTileId = `${playerTileX},${playerTileY}`;
+        const currentTileId = tileToId(playerTileX, playerTileY);
         const tile = draft.world[playerTileY]?.[playerTileX];
 
         // Determine what action is available at current position

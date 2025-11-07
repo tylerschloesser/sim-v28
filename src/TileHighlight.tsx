@@ -1,6 +1,7 @@
 import { memo } from "react";
 import type { UncoverAction, MineAction } from "./types";
 import { TILE_SIZE } from "./constants";
+import { idToTile } from "./tileUtils";
 
 interface TileHighlightProps {
   action: UncoverAction | MineAction | null;
@@ -18,7 +19,7 @@ export const TileHighlight = memo(function TileHighlight({
   const color = action.type === "mine" ? "yellow" : "blue";
 
   // Parse tile coordinates from tileId
-  const [x, y] = action.tileId.split(",").map(Number);
+  const [x, y] = idToTile(action.tileId);
 
   return (
     <rect
