@@ -1,6 +1,6 @@
 import { memo } from "react";
-import type { World, ChunkBounds } from "./types";
-import { TILE_SIZE, CHUNK_SIZE } from "./constants";
+import type { World, ChunkBounds, ResourceType } from "./types";
+import { TILE_SIZE, CHUNK_SIZE, RESOURCE_COLORS } from "./constants";
 
 interface TileGridProps {
   world: World;
@@ -33,12 +33,45 @@ function getTileColor(covered: boolean, x: number, y: number): string {
   }
 }
 
+// Creates a 4x4 checkerboard pattern for resource overlay
+function createCheckerboardPattern(
+  resource: ResourceType,
+  tileX: number,
+  tileY: number,
+): React.JSX.Element[] {
+  const squares = [];
+  const squareSize = TILE_SIZE / 4; // 4x4 grid
+  const color = RESOURCE_COLORS[resource];
+
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      // Checkerboard pattern: alternate squares
+      if ((row + col) % 2 === 0) {
+        squares.push(
+          <rect
+            key={`resource-${tileX}-${tileY}-${row}-${col}`}
+            x={tileX * TILE_SIZE + col * squareSize}
+            y={tileY * TILE_SIZE + row * squareSize}
+            width={squareSize}
+            height={squareSize}
+            fill={color}
+            opacity={0.6}
+          />,
+        );
+      }
+    }
+  }
+
+  return squares;
+}
+
 const TileChunk = memo(function TileChunk({
   world,
   chunkX,
   chunkY,
 }: TileChunkProps) {
   const tiles = [];
+  const resourceOverlays = [];
   const startX = chunkX * CHUNK_SIZE;
   const startY = chunkY * CHUNK_SIZE;
 
@@ -61,10 +94,22 @@ const TileChunk = memo(function TileChunk({
           fill={getTileColor(tile.covered, x, y)}
         />,
       );
+
+      // Add resource overlay for uncovered tiles with resources
+      if (!tile.covered && tile.resource) {
+        resourceOverlays.push(
+          ...createCheckerboardPattern(tile.resource, x, y),
+        );
+      }
     }
   }
 
-  return <g data-chunk={`${chunkX},${chunkY}`}>{tiles}</g>;
+  return (
+    <g data-chunk={`${chunkX},${chunkY}`}>
+      {tiles}
+      {resourceOverlays}
+    </g>
+  );
 });
 
 export const TileGrid = memo(function TileGrid({

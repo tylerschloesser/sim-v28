@@ -1,5 +1,8 @@
+export type ResourceType = "stone" | "wood" | "iron" | "copper";
+
 export interface Tile {
   covered: boolean;
+  resource?: ResourceType;
 }
 
 export type World = Tile[][];
