@@ -42,3 +42,20 @@ export interface AppState {
   visibleChunks: ChunkBounds;
   action: MineAction | null;
 }
+
+// Readonly types for pure functions
+export type ReadonlyWorld = ReadonlyArray<ReadonlyArray<Readonly<Tile>>>;
+
+export interface MovementInput {
+  readonly currentX: number;
+  readonly currentY: number;
+  readonly dx: number;
+  readonly dy: number;
+  readonly world: ReadonlyWorld;
+}
+
+export interface MovementResult {
+  readonly x: number;
+  readonly y: number;
+  readonly collidingTiles: Set<string>;
+}
