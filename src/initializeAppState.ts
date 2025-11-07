@@ -15,7 +15,7 @@ export function initializeAppState(): AppState {
     visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
     action: null,
     inventory: {
-      stone: 0,
+      stone: 10,
       wood: 0,
       iron: 0,
       copper: 0,

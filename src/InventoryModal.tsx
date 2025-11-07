@@ -360,7 +360,6 @@ export function InventoryModal({
                                 width: `${entry.progress * 100}%`,
                                 height: "100%",
                                 backgroundColor: "hsl(200, 70%, 60%)",
-                                transition: "width 0.1s linear",
                               }}
                             />
                           </div>

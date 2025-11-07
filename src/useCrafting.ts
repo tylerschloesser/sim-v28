@@ -7,12 +7,17 @@ interface UseCraftingOptions {
 }
 
 export function useCrafting({ setState }: UseCraftingOptions) {
-  const lastTimeRef = useRef<number>(performance.now());
+  const lastTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     let animationFrameId: number;
 
     const processCrafting = (currentTime: number) => {
+      // Initialize lastTimeRef on first frame to avoid large initial deltaTime
+      if (lastTimeRef.current === null) {
+        lastTimeRef.current = currentTime;
+      }
+
       const deltaTime = (currentTime - lastTimeRef.current) / 1000; // Convert to seconds
       lastTimeRef.current = currentTime;
 
