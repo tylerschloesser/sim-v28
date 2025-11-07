@@ -1,6 +1,11 @@
 import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
-import { PLAYER_ACCELERATION, PLAYER_SPEED, TILE_SIZE } from "./constants";
+import {
+  MINE_TIME_MS,
+  PLAYER_ACCELERATION,
+  PLAYER_SPEED,
+  TILE_SIZE,
+} from "./constants";
 import {
   calculateMovementAndCollision,
   processMovementInput,
@@ -20,7 +25,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (["w", "a", "s", "d"].includes(key)) {
+      if (["w", "a", "s", "d", " "].includes(key)) {
         keysPressed.current.add(key);
       }
     };
@@ -94,6 +99,58 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           // Clear colliding tiles when not moving
           if (draft.collidingTiles.size > 0) {
             draft.collidingTiles.clear();
+          }
+        }
+
+        // Handle mining action
+        const spacebarPressed = keysPressed.current.has(" ");
+
+        // Only allow mining when not colliding with any tiles
+        if (spacebarPressed && draft.collidingTiles.size === 0) {
+          // Get player's current tile
+          const playerTileX = Math.floor(draft.player.x / TILE_SIZE);
+          const playerTileY = Math.floor(draft.player.y / TILE_SIZE);
+          const currentTileId = `${playerTileX},${playerTileY}`;
+          const tile = draft.world[playerTileY]?.[playerTileX];
+
+          // Check if tile is uncovered and has a resource
+          if (tile && !tile.covered && tile.resource) {
+            // Check if we need to start a new mining action
+            if (
+              !draft.action ||
+              draft.action.tileId !== currentTileId ||
+              draft.action.type !== "mine"
+            ) {
+              // Initialize new mine action
+              draft.action = {
+                type: "mine",
+                tileId: currentTileId,
+                progress: 0,
+              };
+            } else {
+              // Continue existing mine action
+              const progressIncrement = deltaTime / (MINE_TIME_MS / 1000);
+              draft.action.progress += progressIncrement;
+
+              // Check if mining cycle is complete
+              if (draft.action.progress >= 1) {
+                // Add resource to inventory
+                draft.inventory[tile.resource] += 1;
+
+                // Reset progress to remainder for continuous mining
+                draft.action.progress = draft.action.progress - 1.0;
+              }
+            }
+          } else {
+            // Clear mine action if conditions not met
+            if (draft.action?.type === "mine") {
+              draft.action = null;
+            }
+          }
+        } else {
+          // Clear mine action if spacebar not pressed or colliding
+          if (draft.action?.type === "mine") {
+            draft.action = null;
           }
         }
       });

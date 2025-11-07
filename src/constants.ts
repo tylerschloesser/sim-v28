@@ -6,6 +6,7 @@ export const CHUNK_SIZE = 16; // tiles per chunk (16x16)
 export const PLAYER_SPEED = 10; // max speed in tiles per second
 export const PLAYER_ACCELERATION = 100; // acceleration in tiles per second^2
 export const COLLISION_PADDING = 2; // pixels from tile boundary
+export const MINE_TIME_MS = 1000; // 1 second per mining cycle
 
 export const RESOURCE_COLORS: Record<ResourceType, string> = {
   iron: "hsl(180, 70%, 80%)", // cyan

@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import type { AppState } from "./types";
 
-const MINE_TIME_MS = 1000; // 1 second to mine a tile
+const UNCOVER_TIME_MS = 1000; // 1 second to uncover a tile
 
-interface UseMiningProps {
+interface UseUncoveringProps {
   setState: Updater<AppState>;
 }
 
-export function useMining({ setState }: UseMiningProps) {
+export function useUncovering({ setState }: UseUncoveringProps) {
   const lastFrameTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -24,22 +24,24 @@ export function useMining({ setState }: UseMiningProps) {
         const collidingTileIds = Array.from(draft.collidingTiles);
 
         if (collidingTileIds.length !== 1) {
-          // Clear action if not colliding with exactly one tile
-          draft.action = null;
+          if (draft.action?.type === "uncover") {
+            // Clear action if not colliding with exactly one tile
+            draft.action = null;
+          }
           return;
         }
 
         const currentTileId = collidingTileIds[0];
 
-        // Check if we need to start a new mining action
+        // Check if we need to start a new uncovering action
         if (
           !draft.action ||
           draft.action.tileId !== currentTileId ||
-          draft.action.type !== "mine"
+          draft.action.type !== "uncover"
         ) {
-          // Initialize new mine action
+          // Initialize new uncover action
           draft.action = {
-            type: "mine",
+            type: "uncover",
             tileId: currentTileId,
             progress: 0,
           };
@@ -47,10 +49,10 @@ export function useMining({ setState }: UseMiningProps) {
         }
 
         // Increment progress based on delta time
-        const progressIncrement = deltaTime / MINE_TIME_MS;
+        const progressIncrement = deltaTime / UNCOVER_TIME_MS;
         draft.action.progress += progressIncrement;
 
-        // Check if mining is complete
+        // Check if uncovering is complete
         if (draft.action.progress >= 1) {
           // Parse tileId to get coordinates (format: "x,y")
           const [tileX, tileY] = currentTileId.split(",").map(Number);

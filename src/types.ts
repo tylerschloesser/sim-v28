@@ -28,11 +28,19 @@ export interface ChunkBounds {
   maxChunkY: number;
 }
 
-export interface MineAction {
-  type: "mine";
+export interface UncoverAction {
+  type: "uncover";
   tileId: string;
   progress: number; // 0-1
 }
+
+export interface MineAction {
+  type: "mine";
+  tileId: string;
+  progress: number; // 0-1, resets to remainder on completion
+}
+
+export type Inventory = Record<ResourceType, number>;
 
 export interface AppState {
   player: Player;
@@ -40,7 +48,8 @@ export interface AppState {
   collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: MineAction | null;
+  action: UncoverAction | MineAction | null;
+  inventory: Inventory;
 }
 
 // Readonly types for pure functions

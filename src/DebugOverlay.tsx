@@ -1,11 +1,19 @@
-import type { Player, Viewport, ChunkBounds, MineAction } from "./types";
+import type {
+  Player,
+  Viewport,
+  ChunkBounds,
+  UncoverAction,
+  MineAction,
+  Inventory,
+} from "./types";
 
 interface DebugOverlayProps {
   player: Player;
   collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
-  action: MineAction | null;
+  action: UncoverAction | MineAction | null;
+  inventory: Inventory;
 }
 
 export function DebugOverlay({
@@ -14,6 +22,7 @@ export function DebugOverlay({
   viewport,
   visibleChunks,
   action,
+  inventory,
 }: DebugOverlayProps) {
   return (
     <div
@@ -76,6 +85,13 @@ export function DebugOverlay({
       ) : (
         <div>none</div>
       )}
+
+      <div style={{ marginTop: "10px" }}>Inventory:</div>
+      <div>stone: {inventory.stone}</div>
+      <div>wood: {inventory.wood}</div>
+      <div>iron: {inventory.iron}</div>
+      <div>copper: {inventory.copper}</div>
+      <div>coal: {inventory.coal}</div>
     </div>
   );
 }

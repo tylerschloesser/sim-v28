@@ -3,7 +3,7 @@ import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
-import { useMining } from "./useMining";
+import { useUncovering } from "./useUncovering";
 import { DebugOverlay } from "./DebugOverlay";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
@@ -21,6 +21,13 @@ function initializeAppState(): AppState {
     viewport: { x: 0, y: 0, width: 0, height: 0 },
     visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
     action: null,
+    inventory: {
+      stone: 0,
+      wood: 0,
+      iron: 0,
+      copper: 0,
+      coal: 0,
+    },
   };
 
   // Calculate initial viewport and chunks
@@ -34,7 +41,7 @@ export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
   useKeyboard({ setState });
-  useMining({ setState });
+  useUncovering({ setState });
 
   // Calculate which tiles to highlight:
   // Priority 1: Show collision tiles if any exist
@@ -82,6 +89,7 @@ export function App() {
         viewport={state.viewport}
         visibleChunks={state.visibleChunks}
         action={state.action}
+        inventory={state.inventory}
       />
     </>
   );
