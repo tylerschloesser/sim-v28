@@ -68,6 +68,7 @@ export function App() {
         collidingTiles={state.collidingTiles}
         viewport={state.viewport}
         visibleChunks={state.visibleChunks}
+        action={state.action}
       />
     </>
   );

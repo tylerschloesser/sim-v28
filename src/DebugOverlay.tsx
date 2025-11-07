@@ -1,10 +1,11 @@
-import type { Player, Viewport, ChunkBounds } from "./types";
+import type { Player, Viewport, ChunkBounds, MineAction } from "./types";
 
 interface DebugOverlayProps {
   player: Player;
   collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
+  action: MineAction | null;
 }
 
 export function DebugOverlay({
@@ -12,6 +13,7 @@ export function DebugOverlay({
   collidingTiles,
   viewport,
   visibleChunks,
+  action,
 }: DebugOverlayProps) {
   return (
     <div
@@ -62,6 +64,17 @@ export function DebugOverlay({
             </div>
           ))}
         </div>
+      )}
+
+      <div style={{ marginTop: "10px" }}>Action:</div>
+      {action ? (
+        <>
+          <div>type: {action.type}</div>
+          <div>tile: {action.tileId}</div>
+          <div>progress: {(action.progress * 100).toFixed(1)}%</div>
+        </>
+      ) : (
+        <div>none</div>
       )}
     </div>
   );
