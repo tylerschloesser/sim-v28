@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { generateWorld } from "./worldGen";
+import { TileGrid } from "./TileGrid";
 
 // Configuration constants
 const WORLD_SIZE = 256;
@@ -9,14 +10,10 @@ export function App() {
   // Generate world once on mount
   const world = useMemo(() => generateWorld(WORLD_SIZE), []);
 
-  const canvasWidth = WORLD_SIZE * TILE_SIZE;
-  const canvasHeight = WORLD_SIZE * TILE_SIZE;
-
   return (
     <svg
       width="100%"
       height="100%"
-      viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
       style={{
         position: "fixed",
         top: 0,
@@ -26,18 +23,7 @@ export function App() {
         background: "#000000",
       }}
     >
-      {world.map((row, y) =>
-        row.map((tile, x) => (
-          <rect
-            key={`${x}-${y}`}
-            x={x * TILE_SIZE}
-            y={y * TILE_SIZE}
-            width={TILE_SIZE}
-            height={TILE_SIZE}
-            fill={tile.color}
-          />
-        )),
-      )}
+      <TileGrid world={world} tileSize={TILE_SIZE} />
     </svg>
   );
 }
