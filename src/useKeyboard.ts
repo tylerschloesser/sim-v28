@@ -1,7 +1,12 @@
 import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import type { AppState } from "./types";
-import { COLLISION_PADDING, PLAYER_SPEED, TILE_SIZE } from "./constants";
+import {
+  COLLISION_PADDING,
+  PLAYER_SPEED,
+  PLAYER_ACCELERATION,
+  TILE_SIZE,
+} from "./constants";
 import { isEqual } from "lodash-es";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 
@@ -132,37 +137,61 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
     };
   }, []);
 
-  // Animation loop for smooth player movement
+  // Animation loop for smooth player movement with acceleration
   useEffect(() => {
     let animationFrameId: number;
 
     const updatePlayer = () => {
-      let dx = 0;
-      let dy = 0;
+      setState((draft) => {
+        let inputX = 0;
+        let inputY = 0;
 
-      if (keysPressed.current.has("w")) dy -= 1;
-      if (keysPressed.current.has("s")) dy += 1;
-      if (keysPressed.current.has("a")) dx -= 1;
-      if (keysPressed.current.has("d")) dx += 1;
+        if (keysPressed.current.has("w")) inputY -= 1;
+        if (keysPressed.current.has("s")) inputY += 1;
+        if (keysPressed.current.has("a")) inputX -= 1;
+        if (keysPressed.current.has("d")) inputX += 1;
 
-      // Only update if there's movement
-      if (dx !== 0 || dy !== 0) {
-        // Normalize diagonal movement
-        const magnitude = Math.sqrt(dx * dx + dy * dy);
-        dx = (dx / magnitude) * PLAYER_SPEED;
-        dy = (dy / magnitude) * PLAYER_SPEED;
+        // Normalize input direction for diagonal movement
+        const inputMagnitude = Math.sqrt(inputX * inputX + inputY * inputY);
+        if (inputMagnitude > 0) {
+          inputX /= inputMagnitude;
+          inputY /= inputMagnitude;
+        }
 
-        setState((draft) => {
-          applyPlayerMovement(draft, dx, dy);
-        });
-      } else {
-        setState((draft) => {
+        // Apply acceleration in the direction of input
+        if (inputX !== 0 || inputY !== 0) {
+          draft.player.vx += inputX * PLAYER_ACCELERATION;
+          draft.player.vy += inputY * PLAYER_ACCELERATION;
+        } else {
+          // Apply friction when no input (decelerate)
+          const friction = 0.9;
+          draft.player.vx *= friction;
+          draft.player.vy *= friction;
+
+          // Stop completely if velocity is very small
+          if (Math.abs(draft.player.vx) < 0.01) draft.player.vx = 0;
+          if (Math.abs(draft.player.vy) < 0.01) draft.player.vy = 0;
+        }
+
+        // Clamp velocity to max speed
+        const currentSpeed = Math.sqrt(
+          draft.player.vx * draft.player.vx + draft.player.vy * draft.player.vy,
+        );
+        if (currentSpeed > PLAYER_SPEED) {
+          draft.player.vx = (draft.player.vx / currentSpeed) * PLAYER_SPEED;
+          draft.player.vy = (draft.player.vy / currentSpeed) * PLAYER_SPEED;
+        }
+
+        // Apply movement using velocity
+        if (draft.player.vx !== 0 || draft.player.vy !== 0) {
+          applyPlayerMovement(draft, draft.player.vx, draft.player.vy);
+        } else {
           // Clear colliding tiles when not moving
           if (draft.collidingTiles.size > 0) {
             draft.collidingTiles.clear();
           }
-        });
-      }
+        }
+      });
 
       animationFrameId = requestAnimationFrame(updatePlayer);
     };

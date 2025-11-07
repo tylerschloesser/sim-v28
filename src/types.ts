@@ -7,6 +7,8 @@ export type World = Tile[][];
 export interface Player {
   x: number;
   y: number;
+  vx: number; // velocity x
+  vy: number; // velocity y
 }
 
 export interface Viewport {

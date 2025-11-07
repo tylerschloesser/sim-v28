@@ -15,7 +15,7 @@ function initializeAppState(): AppState {
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
   const state: AppState = {
-    player: { x: worldCenterX, y: worldCenterY },
+    player: { x: worldCenterX, y: worldCenterY, vx: 0, vy: 0 },
     world,
     collidingTiles: new Set(),
     viewport: { x: 0, y: 0, width: 0, height: 0 },
