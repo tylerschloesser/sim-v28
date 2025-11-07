@@ -23,10 +23,17 @@ export interface ChunkBounds {
   maxChunkY: number;
 }
 
+export interface MineAction {
+  type: "mine";
+  tileId: string;
+  progress: number; // 0-1
+}
+
 export interface AppState {
   player: Player;
   world: World;
   collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
+  action: MineAction | null;
 }

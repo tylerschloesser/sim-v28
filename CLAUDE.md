@@ -35,6 +35,7 @@ This is a 2D tile-based simulation with player movement and collision detection,
 **State Management**: Uses `use-immer` for immutable state updates. The entire application state (`AppState`) is managed in `App.tsx` and passed down to components. State includes player position, world tiles, viewport bounds, visible chunks, and collision information.
 
 **Coordinate Systems**: Two coordinate systems coexist:
+
 - **World coordinates**: Absolute pixel positions in the world (player position, viewport bounds)
 - **Tile coordinates**: Grid indices for the tile array (accessed via `world[tileY][tileX]`)
 - Convert between them using `TILE_SIZE` constant (32 pixels per tile)

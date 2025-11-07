@@ -3,6 +3,7 @@ import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { CollisionHighlight } from "./CollisionHighlight";
 import { useKeyboard } from "./useKeyboard";
+import { useMining } from "./useMining";
 import { DebugOverlay } from "./DebugOverlay";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
@@ -19,6 +20,7 @@ function initializeAppState(): AppState {
     collidingTiles: new Set(),
     viewport: { x: 0, y: 0, width: 0, height: 0 },
     visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
+    action: null,
   };
 
   // Calculate initial viewport and chunks
@@ -32,6 +34,7 @@ export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
   useKeyboard({ setState });
+  useMining({ setState });
 
   return (
     <>
