@@ -3,11 +3,7 @@ import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { useKeyboard } from "./useKeyboard";
 import type { AppState } from "./types";
-
-// Configuration constants
-const WORLD_SIZE = 128;
-const TILE_SIZE = 32;
-const PLAYER_SPEED = 5; // pixels per frame
+import { WORLD_SIZE, TILE_SIZE } from "./constants";
 
 function initializeAppState(): AppState {
   const world = generateWorld(WORLD_SIZE);
@@ -23,10 +19,7 @@ function initializeAppState(): AppState {
 export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
-  useKeyboard({
-    speed: PLAYER_SPEED,
-    setState,
-  });
+  useKeyboard({ setState });
 
   return (
     <svg
