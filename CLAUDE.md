@@ -42,30 +42,38 @@ This is a 2D tile-based simulation with player movement and collision detection,
 
 **Chunk-Based Rendering**: World is divided into chunks (16x16 tiles each, defined by `CHUNK_SIZE`). Only visible chunks are rendered to optimize performance. The viewport system (`viewportUtils.ts`) calculates which chunks are visible based on player position, and `TileGrid.tsx` renders only those chunks.
 
-**Collision Detection**: Player movement (`useKeyboard.ts`) checks tiles ahead with padding (`COLLISION_PADDING`). When movement would enter a covered tile, the player stops at the boundary but can slide along walls by moving as close as possible. Colliding tiles are highlighted via `CollisionHighlight.tsx`.
+**Collision Detection**: Player movement (`useKeyboard.ts`) checks tiles ahead with padding (`COLLISION_PADDING`). When movement would enter a covered tile, the player stops at the boundary but can slide along walls by moving as close as possible. Colliding tiles are highlighted via `TileHighlight.tsx`.
 
 **Movement System**: `useKeyboard.ts` handles WASD input using `requestAnimationFrame` for smooth movement. Diagonal movement is normalized to maintain consistent speed (`PLAYER_SPEED`). Movement mutates draft state using immer, then recalculates viewport and visible chunks.
+
+**Tile Uncovering**: `useUncovering.ts` automatically uncovers tiles when the player collides with exactly one covered tile. Progress bar fills over 1 second (`UNCOVER_TIME_MS`), then the tile becomes uncovered. This mechanic allows exploration of the world.
+
+**Resource Mining**: Players can mine resources from uncovered tiles by pressing spacebar. Mining takes 1 second per cycle (`MINE_TIME_MS`) and adds resources to the player's inventory. Resources are visualized with colored checkerboard patterns on tiles.
 
 **Rendering**: SVG-based rendering with a camera transform that centers the player. The world transforms to keep player centered on screen, while the player dot itself stays at screen center (`window.innerWidth/2`, `window.innerHeight/2`).
 
 ### Key Files
 
 - `App.tsx` - Root component, initializes state, orchestrates all systems
-- `types.ts` - Core type definitions (`AppState`, `World`, `Player`, `Viewport`, `ChunkBounds`)
-- `constants.ts` - Configuration values (`WORLD_SIZE`, `TILE_SIZE`, `CHUNK_SIZE`, `PLAYER_SPEED`, `COLLISION_PADDING`)
-- `worldGen.ts` - Generates initial world with covered/uncovered tiles
-- `useKeyboard.ts` - Handles player input, movement, and collision detection
+- `types.ts` - Core type definitions (`AppState`, `World`, `Player`, `Viewport`, `ChunkBounds`, `UncoverAction`, `MineAction`, `Inventory`)
+- `constants.ts` - Configuration values (`WORLD_SIZE`, `TILE_SIZE`, `CHUNK_SIZE`, `PLAYER_SPEED`, `COLLISION_PADDING`, `MINE_TIME_MS`, `RESOURCE_COLORS`)
+- `worldGen.ts` - Generates initial world with covered/uncovered tiles and random resource placement
+- `useKeyboard.ts` - Handles player input, movement, collision detection, and mining (spacebar)
+- `useUncovering.ts` - Automatically uncovers tiles when player collides with exactly one covered tile
+- `playerMovement.ts` - Pure functions for movement calculations and velocity processing
 - `viewportUtils.ts` - Calculates viewport bounds and visible chunks (mutates immer draft state)
-- `TileGrid.tsx` - Renders visible chunks with memoization for performance
-- `CollisionHighlight.tsx` - Visualizes tiles the player is colliding with
-- `DebugOverlay.tsx` - Shows player position, viewport, chunks, and collision info
+- `TileGrid.tsx` - Renders visible chunks with memoization for performance; shows resource overlays
+- `TileHighlight.tsx` - Visualizes tiles the player is colliding with or standing on (for resources)
+- `DebugOverlay.tsx` - Shows player position, viewport, chunks, collision info, action progress, and inventory
 
 ### Important Patterns
 
 - **Immer mutations**: Functions in `viewportUtils.ts` and movement logic directly mutate draft state. This is intentional and correct when using immer.
+- **Pure functions**: `playerMovement.ts` contains pure functions (`calculateMovementAndCollision`, `processMovementInput`) that don't mutate state - they return new values that are then applied to the draft.
 - **Memoization**: `TileGrid` and `TileChunk` components use `memo()` to prevent unnecessary re-renders since the world array is stable.
 - **Viewport updates**: After any player movement, always call `updateViewport()` and `updateVisibleChunks()` to keep rendering in sync.
 - **Chunk key stability**: Chunk keys like `chunk-${chunkX}-${chunkY}` must remain stable across renders for React optimization.
+- **Action system**: `AppState.action` tracks current player action (uncover or mine) with progress. Only one action can be active at a time. Actions are managed by the respective hooks (`useUncovering`, `useKeyboard`).
 
 ## Technology Stack
 
