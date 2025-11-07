@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useImmer } from "use-immer";
 import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
 import { EntityRenderer } from "./EntityRenderer";
 import { BuildPreview } from "./BuildPreview";
 import { useKeyboard } from "./useKeyboard";
+import { useMovement } from "./useMovement";
+import { useJoystick, type JoystickState } from "./useJoystick";
+import { JoystickUI } from "./JoystickUI";
 import { useCrafting } from "./useCrafting";
 import { DebugOverlay } from "./DebugOverlay";
 import { ProgressBar } from "./ProgressBar";
@@ -13,8 +17,17 @@ import type { AppState, Recipe } from "./types";
 
 export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
+  const [joystickState, setJoystickState] = useState<JoystickState>({
+    active: false,
+    centerX: 0,
+    centerY: 0,
+    currentX: 0,
+    currentY: 0,
+  });
 
+  useMovement({ setState });
   useKeyboard({ setState });
+  useJoystick({ setState, onJoystickChange: setJoystickState });
   useCrafting({ setState });
 
   const handleCraft = (recipe: Recipe) => {
@@ -102,6 +115,7 @@ export function App() {
         selectedItem={state.selectedItem}
         entities={state.entities}
       />
+      <JoystickUI joystickState={joystickState} />
     </>
   );
 }

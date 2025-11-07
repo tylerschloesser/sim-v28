@@ -8,13 +8,9 @@ import {
   TILE_SIZE,
   UNCOVER_TIME_MS,
 } from "./constants";
-import {
-  calculateMovementAndCollision,
-  processMovementInput,
-} from "./playerMovement";
+import { processMovementInput } from "./playerMovement";
 import { tileToId } from "./tileUtils";
 import type { AppState } from "./types";
-import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import { getAvailableAction } from "./actionUtils";
 import { getEntityTiles } from "./entityUtils";
 
@@ -60,7 +56,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
     };
   }, [setState]);
 
-  // Animation loop for smooth player movement with acceleration
+  // Animation loop for velocity updates and action handling
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
@@ -70,43 +66,32 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
       lastTime = currentTime;
 
       setState((draft) => {
-        // Process movement input and update velocity
-        const { vx, vy } = processMovementInput(
-          keysPressed.current,
-          draft.player.vx,
-          draft.player.vy,
-          deltaTime,
-          PLAYER_ACCELERATION,
-          PLAYER_SPEED,
-        );
+        // Check if there's any keyboard input for movement
+        const hasMovementInput =
+          keysPressed.current.has("w") ||
+          keysPressed.current.has("a") ||
+          keysPressed.current.has("s") ||
+          keysPressed.current.has("d");
 
-        // Apply velocity to draft
-        draft.player.vx = vx;
-        draft.player.vy = vy;
+        // Only update velocity if there's keyboard input
+        // This allows other input methods (joystick) to control velocity when keyboard is not used
+        if (
+          hasMovementInput ||
+          draft.player.vx !== 0 ||
+          draft.player.vy !== 0
+        ) {
+          const { vx, vy } = processMovementInput(
+            keysPressed.current,
+            draft.player.vx,
+            draft.player.vy,
+            deltaTime,
+            PLAYER_ACCELERATION,
+            PLAYER_SPEED,
+          );
 
-        // Calculate movement with collision detection
-        if (vx !== 0 || vy !== 0) {
-          // Convert velocity in tiles/s to pixels by multiplying by TILE_SIZE
-          // Then multiply by deltaTime to get distance traveled this frame
-          const dx = vx * TILE_SIZE * deltaTime;
-          const dy = vy * TILE_SIZE * deltaTime;
-
-          // Call pure function with readonly state
-          const result = calculateMovementAndCollision({
-            currentX: draft.player.x,
-            currentY: draft.player.y,
-            dx,
-            dy,
-            world: draft.tiles,
-          });
-
-          // Apply mutations to draft
-          draft.player.x = result.x;
-          draft.player.y = result.y;
-
-          // Update viewport and visible chunks
-          updateViewport(draft);
-          updateVisibleChunks(draft);
+          // Apply velocity to draft
+          draft.player.vx = vx;
+          draft.player.vy = vy;
         }
 
         // Get player's current tile position
