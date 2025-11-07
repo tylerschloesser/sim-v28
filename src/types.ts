@@ -12,4 +12,5 @@ export interface Player {
 export interface AppState {
   player: Player;
   world: World;
+  collidingTiles: Set<string>;
 }

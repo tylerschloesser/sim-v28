@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import type { AppState } from "./types";
 import { COLLISION_PADDING, PLAYER_SPEED, TILE_SIZE } from "./constants";
+import { isEqual } from "lodash-es";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
@@ -14,6 +15,7 @@ interface UseKeyboardOptions {
  */
 function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
   const { player, world } = draft;
+  const newCollidingTiles = new Set<string>();
 
   // Helper function to check if a position overlaps a covered tile
   const isPositionCovered = (x: number, y: number): boolean => {
@@ -43,6 +45,10 @@ function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
     const checkX = newX + (dx > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
 
     if (isPositionCovered(checkX, startY)) {
+      newCollidingTiles.add(
+        `${Math.floor(checkX / TILE_SIZE)},${Math.floor(startY / TILE_SIZE)}`,
+      );
+
       // Calculate the tile boundary we're approaching
       const targetTileX =
         dx > 0 ? Math.floor(checkX / TILE_SIZE) : Math.ceil(checkX / TILE_SIZE);
@@ -66,6 +72,10 @@ function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
     const checkY = newY + (dy > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
 
     if (isPositionCovered(startX, checkY)) {
+      newCollidingTiles.add(
+        `${Math.floor(startX / TILE_SIZE)},${Math.floor(checkY / TILE_SIZE)}`,
+      );
+
       // Calculate the tile boundary we're approaching
       const targetTileY =
         dy > 0 ? Math.floor(checkY / TILE_SIZE) : Math.ceil(checkY / TILE_SIZE);
@@ -80,6 +90,10 @@ function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
       // Use the smaller of requested movement or max allowed distance
       finalDy = Math.abs(dy) < Math.abs(maxDistance) ? dy : maxDistance;
     }
+  }
+
+  if (!isEqual(draft.collidingTiles, newCollidingTiles)) {
+    draft.collidingTiles = newCollidingTiles;
   }
 
   // Apply the allowed movement

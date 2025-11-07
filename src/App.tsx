@@ -13,6 +13,7 @@ function initializeAppState(): AppState {
   return {
     player: { x: worldCenterX, y: worldCenterY },
     world,
+    collidingTiles: new Set(),
   };
 }
 
