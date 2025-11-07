@@ -1,5 +1,9 @@
 export type ResourceType = "stone" | "wood" | "iron" | "copper" | "coal";
 
+export type CraftedItemType = "stone-furnace" | "wood-storage";
+
+export type ItemType = ResourceType | CraftedItemType;
+
 export interface Tile {
   covered: boolean;
   resource?: ResourceType;
@@ -40,7 +44,18 @@ export interface MineAction {
   progress: number; // 0-1, resets to remainder on completion
 }
 
-export type Inventory = Record<ResourceType, number>;
+export interface Recipe {
+  ingredients: Partial<Record<ItemType, number>>;
+  craftTime: number; // milliseconds
+  result: CraftedItemType;
+}
+
+export interface CraftQueueEntry {
+  recipe: Recipe;
+  progress: number; // 0-1
+}
+
+export type Inventory = Record<ItemType, number>;
 
 export interface AppState {
   player: Player;
@@ -50,6 +65,7 @@ export interface AppState {
   action: UncoverAction | MineAction | null;
   inventory: Inventory;
   inventoryOpen: boolean;
+  craftQueue: CraftQueueEntry[];
 }
 
 // Readonly types for pure functions

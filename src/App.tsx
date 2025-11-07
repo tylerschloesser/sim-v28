@@ -3,11 +3,12 @@ import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
+import { useCrafting } from "./useCrafting";
 import { DebugOverlay } from "./DebugOverlay";
 import { ProgressBar } from "./ProgressBar";
 import { InventoryModal } from "./InventoryModal";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
-import type { AppState } from "./types";
+import type { AppState, Recipe } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
 
 function initializeAppState(): AppState {
@@ -27,8 +28,11 @@ function initializeAppState(): AppState {
       iron: 0,
       copper: 0,
       coal: 0,
+      "stone-furnace": 0,
+      "wood-storage": 0,
     },
     inventoryOpen: false,
+    craftQueue: [],
   };
 
   // Calculate initial viewport and chunks
@@ -42,6 +46,31 @@ export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
   useKeyboard({ setState });
+  useCrafting({ setState });
+
+  const handleCraft = (recipe: Recipe) => {
+    setState((draft) => {
+      // Check if we have the ingredients
+      const hasIngredients = Object.entries(recipe.ingredients).every(
+        ([item, required]) =>
+          draft.inventory[item as keyof typeof draft.inventory] >=
+          (required || 0),
+      );
+
+      if (!hasIngredients) return;
+
+      // Deduct ingredients
+      Object.entries(recipe.ingredients).forEach(([item, required]) => {
+        draft.inventory[item as keyof typeof draft.inventory] -= required || 0;
+      });
+
+      // Add to craft queue
+      draft.craftQueue.push({
+        recipe,
+        progress: 0,
+      });
+    });
+  };
 
   return (
     <>
@@ -79,6 +108,8 @@ export function App() {
             draft.inventoryOpen = open;
           })
         }
+        craftQueue={state.craftQueue}
+        onCraft={handleCraft}
       />
       <DebugOverlay
         player={state.player}
