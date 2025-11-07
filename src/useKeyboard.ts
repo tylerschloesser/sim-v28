@@ -1,11 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Updater } from "use-immer";
 import type { AppState } from "./types";
-import {
-  COLLISION_PADDING,
-  PLAYER_SPEED,
-  TILE_SIZE,
-} from "./constants";
+import { COLLISION_PADDING, PLAYER_SPEED, TILE_SIZE } from "./constants";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
