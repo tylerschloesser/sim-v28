@@ -1,5 +1,5 @@
 export interface Tile {
-  color: string;
+  covered: boolean;
 }
 
 export type World = Tile[][];

@@ -6,6 +6,18 @@ interface TileGridProps {
   tileSize: number;
 }
 
+function getTileColor(covered: boolean): string {
+  if (covered) {
+    // Random shade of black (0-40% lightness)
+    const lightness = Math.floor(Math.random() * 40);
+    return `hsl(0, 0%, ${lightness}%)`;
+  } else {
+    // Random shade of white (60-100% lightness)
+    const lightness = 60 + Math.floor(Math.random() * 40);
+    return `hsl(0, 0%, ${lightness}%)`;
+  }
+}
+
 export const TileGrid = memo(function TileGrid({
   world,
   tileSize,
@@ -20,7 +32,7 @@ export const TileGrid = memo(function TileGrid({
             y={y * tileSize}
             width={tileSize}
             height={tileSize}
-            fill={tile.color}
+            fill={getTileColor(tile.covered)}
           />
         )),
       )}
