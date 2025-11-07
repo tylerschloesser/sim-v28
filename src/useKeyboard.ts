@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import type { Updater } from "use-immer";
 import {
   ENTITY_DEFINITIONS,
@@ -18,11 +18,21 @@ import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import { getAvailableAction } from "./actionUtils";
 import { getEntityTiles } from "./entityUtils";
 
-interface UseKeyboardOptions {
-  setState: Updater<AppState>;
+interface PointerVelocity {
+  vx: number;
+  vy: number;
+  active: boolean;
 }
 
-export function useKeyboard({ setState }: UseKeyboardOptions) {
+interface UseKeyboardOptions {
+  setState: Updater<AppState>;
+  pointerVelocity: RefObject<PointerVelocity>;
+}
+
+export function useKeyboard({
+  setState,
+  pointerVelocity,
+}: UseKeyboardOptions) {
   const keysPressed = useRef<Set<string>>(new Set());
 
   // Handle keyboard input
@@ -70,15 +80,27 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
       lastTime = currentTime;
 
       setState((draft) => {
-        // Process movement input and update velocity
-        const { vx, vy } = processMovementInput(
-          keysPressed.current,
-          draft.player.vx,
-          draft.player.vy,
-          deltaTime,
-          PLAYER_ACCELERATION,
-          PLAYER_SPEED,
-        );
+        let vx: number;
+        let vy: number;
+
+        // Use pointer velocity if active, otherwise use keyboard input
+        if (pointerVelocity.current?.active) {
+          // Use pointer velocity directly (no acceleration)
+          vx = pointerVelocity.current.vx;
+          vy = pointerVelocity.current.vy;
+        } else {
+          // Process keyboard movement input with acceleration
+          const result = processMovementInput(
+            keysPressed.current,
+            draft.player.vx,
+            draft.player.vy,
+            deltaTime,
+            PLAYER_ACCELERATION,
+            PLAYER_SPEED,
+          );
+          vx = result.vx;
+          vy = result.vy;
+        }
 
         // Apply velocity to draft
         draft.player.vx = vx;
@@ -303,5 +325,5 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [setState]);
+  }, [setState, pointerVelocity]);
 }
