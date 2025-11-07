@@ -4,6 +4,7 @@ import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
 import { DebugOverlay } from "./DebugOverlay";
+import { ProgressBar } from "./ProgressBar";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
@@ -67,6 +68,7 @@ export function App() {
           fill="#0000ff"
         />
       </svg>
+      <ProgressBar action={state.action} />
       <DebugOverlay
         player={state.player}
         viewport={state.viewport}
