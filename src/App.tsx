@@ -4,6 +4,7 @@ import { TileHighlight } from "./TileHighlight";
 import { EntityRenderer } from "./EntityRenderer";
 import { BuildPreview } from "./BuildPreview";
 import { useKeyboard } from "./useKeyboard";
+import { usePointerJoystick } from "./usePointerJoystick";
 import { useCrafting } from "./useCrafting";
 import { DebugOverlay } from "./DebugOverlay";
 import { ProgressBar } from "./ProgressBar";
@@ -14,7 +15,8 @@ import type { AppState, Recipe } from "./types";
 export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
-  useKeyboard({ setState });
+  const pointerVelocity = usePointerJoystick();
+  useKeyboard({ setState, pointerVelocity });
   useCrafting({ setState });
 
   const handleCraft = (recipe: Recipe) => {
