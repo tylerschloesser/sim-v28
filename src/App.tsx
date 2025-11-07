@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useImmer } from "use-immer";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
@@ -10,18 +9,19 @@ const WORLD_SIZE = 128;
 const TILE_SIZE = 32;
 const PLAYER_SPEED = 5; // pixels per frame
 
-export function App() {
-  // Player starts at center of world
+function initializeAppState(): AppState {
+  const world = generateWorld(WORLD_SIZE);
   const worldCenterX = (WORLD_SIZE * TILE_SIZE) / 2;
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
-  // Generate world once on mount
-  const world = useMemo(() => generateWorld(WORLD_SIZE), []);
-
-  const [state, setState] = useImmer<AppState>({
+  return {
     player: { x: worldCenterX, y: worldCenterY },
     world,
-  });
+  };
+}
+
+export function App() {
+  const [state, setState] = useImmer<AppState>(initializeAppState);
 
   useKeyboard({
     speed: PLAYER_SPEED,
