@@ -2,6 +2,7 @@ import { useImmer } from "use-immer";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { useKeyboard } from "./useKeyboard";
+import { DebugOverlay } from "./DebugOverlay";
 import type { AppState } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
 
@@ -23,29 +24,35 @@ export function App() {
   useKeyboard({ setState });
 
   return (
-    <svg
-      width="100%"
-      height="100%"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "#000000",
-      }}
-    >
-      <g
-        transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
+    <>
+      <svg
+        width="100%"
+        height="100%"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "#000000",
+        }}
       >
-        <TileGrid world={state.world} tileSize={TILE_SIZE} />
-      </g>
-      <circle
-        cx={window.innerWidth / 2}
-        cy={window.innerHeight / 2}
-        r={4}
-        fill="#0000ff"
+        <g
+          transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
+        >
+          <TileGrid world={state.world} tileSize={TILE_SIZE} />
+        </g>
+        <circle
+          cx={window.innerWidth / 2}
+          cy={window.innerHeight / 2}
+          r={4}
+          fill="#0000ff"
+        />
+      </svg>
+      <DebugOverlay
+        player={state.player}
+        collidingTiles={state.collidingTiles}
       />
-    </svg>
+    </>
   );
 }
