@@ -4,6 +4,7 @@ import { TileGrid } from "./TileGrid";
 import { CollisionHighlight } from "./CollisionHighlight";
 import { useKeyboard } from "./useKeyboard";
 import { DebugOverlay } from "./DebugOverlay";
+import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
 
@@ -12,11 +13,19 @@ function initializeAppState(): AppState {
   const worldCenterX = (WORLD_SIZE * TILE_SIZE) / 2;
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
-  return {
+  const state: AppState = {
     player: { x: worldCenterX, y: worldCenterY },
     world,
     collidingTiles: new Set(),
+    viewport: { x: 0, y: 0, width: 0, height: 0 },
+    visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
   };
+
+  // Calculate initial viewport and chunks
+  updateViewport(state);
+  updateVisibleChunks(state);
+
+  return state;
 }
 
 export function App() {
@@ -41,7 +50,7 @@ export function App() {
         <g
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
-          <TileGrid world={state.world} />
+          <TileGrid world={state.world} visibleChunks={state.visibleChunks} />
           <CollisionHighlight collidingTiles={state.collidingTiles} />
         </g>
         <circle
@@ -54,6 +63,8 @@ export function App() {
       <DebugOverlay
         player={state.player}
         collidingTiles={state.collidingTiles}
+        viewport={state.viewport}
+        visibleChunks={state.visibleChunks}
       />
     </>
   );

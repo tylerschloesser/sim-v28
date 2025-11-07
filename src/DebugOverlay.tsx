@@ -1,11 +1,18 @@
-import type { Player } from "./types";
+import type { Player, Viewport, ChunkBounds } from "./types";
 
 interface DebugOverlayProps {
   player: Player;
   collidingTiles: Set<string>;
+  viewport: Viewport;
+  visibleChunks: ChunkBounds;
 }
 
-export function DebugOverlay({ player, collidingTiles }: DebugOverlayProps) {
+export function DebugOverlay({
+  player,
+  collidingTiles,
+  viewport,
+  visibleChunks,
+}: DebugOverlayProps) {
   return (
     <div
       style={{
@@ -24,11 +31,31 @@ export function DebugOverlay({ player, collidingTiles }: DebugOverlayProps) {
       <div>Player Position:</div>
       <div>x: {player.x.toFixed(2)}</div>
       <div>y: {player.y.toFixed(2)}</div>
+
+      <div style={{ marginTop: "10px" }}>Viewport:</div>
+      <div>x: {viewport.x.toFixed(2)}</div>
+      <div>y: {viewport.y.toFixed(2)}</div>
+      <div>w: {viewport.width}</div>
+      <div>h: {viewport.height}</div>
+
+      <div style={{ marginTop: "10px" }}>Visible Chunks:</div>
+      <div>
+        x: [{visibleChunks.minChunkX}, {visibleChunks.maxChunkX})
+      </div>
+      <div>
+        y: [{visibleChunks.minChunkY}, {visibleChunks.maxChunkY})
+      </div>
+      <div>
+        count:{" "}
+        {(visibleChunks.maxChunkX - visibleChunks.minChunkX) *
+          (visibleChunks.maxChunkY - visibleChunks.minChunkY)}
+      </div>
+
       <div style={{ marginTop: "10px" }}>
         Colliding Tiles: {collidingTiles.size}
       </div>
       {collidingTiles.size > 0 && (
-        <div style={{ marginTop: "5px", maxHeight: "200px", overflow: "auto" }}>
+        <div style={{ marginTop: "5px", maxHeight: "100px", overflow: "auto" }}>
           {Array.from(collidingTiles).map((tile) => (
             <div key={tile} style={{ fontSize: "10px" }}>
               {tile}

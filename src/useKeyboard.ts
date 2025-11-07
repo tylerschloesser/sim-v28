@@ -3,6 +3,7 @@ import type { Updater } from "use-immer";
 import type { AppState } from "./types";
 import { COLLISION_PADDING, PLAYER_SPEED, TILE_SIZE } from "./constants";
 import { isEqual } from "lodash-es";
+import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
@@ -99,6 +100,10 @@ function applyPlayerMovement(draft: AppState, dx: number, dy: number): void {
   // Apply the allowed movement
   draft.player.x += finalDx;
   draft.player.y += finalDy;
+
+  // Recalculate viewport and visible chunks
+  updateViewport(draft);
+  updateVisibleChunks(draft);
 }
 
 export function useKeyboard({ setState }: UseKeyboardOptions) {
