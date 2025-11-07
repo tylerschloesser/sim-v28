@@ -4,7 +4,7 @@ export interface Tile {
 
 export type World = Tile[][];
 
-export interface Camera {
+export interface Player {
   x: number;
   y: number;
 }

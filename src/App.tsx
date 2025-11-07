@@ -1,22 +1,22 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
-import type { Camera } from "./types";
+import type { Player } from "./types";
 
 // Configuration constants
 const WORLD_SIZE = 128;
 const TILE_SIZE = 32;
-const CAMERA_SPEED = 5; // pixels per frame
+const PLAYER_SPEED = 5; // pixels per frame
 
 export function App() {
   // Generate world once on mount
   const world = useMemo(() => generateWorld(WORLD_SIZE), []);
 
-  // Camera starts at center of world
+  // Player starts at center of world
   const worldCenterX = (WORLD_SIZE * TILE_SIZE) / 2;
   const worldCenterY = (WORLD_SIZE * TILE_SIZE) / 2;
 
-  const [camera, setCamera] = useState<Camera>({
+  const [player, setPlayer] = useState<Player>({
     x: worldCenterX,
     y: worldCenterY,
   });
@@ -47,12 +47,12 @@ export function App() {
     };
   }, []);
 
-  // Animation loop for smooth camera movement
+  // Animation loop for smooth player movement
   useEffect(() => {
     let animationFrameId: number;
 
-    const updateCamera = () => {
-      setCamera((prev) => {
+    const updatePlayer = () => {
+      setPlayer((prev) => {
         let dx = 0;
         let dy = 0;
 
@@ -66,8 +66,8 @@ export function App() {
 
         // Normalize diagonal movement
         const magnitude = Math.sqrt(dx * dx + dy * dy);
-        dx = (dx / magnitude) * CAMERA_SPEED;
-        dy = (dy / magnitude) * CAMERA_SPEED;
+        dx = (dx / magnitude) * PLAYER_SPEED;
+        dy = (dy / magnitude) * PLAYER_SPEED;
 
         return {
           x: prev.x + dx,
@@ -75,10 +75,10 @@ export function App() {
         };
       });
 
-      animationFrameId = requestAnimationFrame(updateCamera);
+      animationFrameId = requestAnimationFrame(updatePlayer);
     };
 
-    animationFrameId = requestAnimationFrame(updateCamera);
+    animationFrameId = requestAnimationFrame(updatePlayer);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -99,7 +99,7 @@ export function App() {
       }}
     >
       <g
-        transform={`translate(${window.innerWidth / 2 - camera.x}, ${window.innerHeight / 2 - camera.y})`}
+        transform={`translate(${window.innerWidth / 2 - player.x}, ${window.innerHeight / 2 - player.y})`}
       >
         <TileGrid world={world} tileSize={TILE_SIZE} />
       </g>
