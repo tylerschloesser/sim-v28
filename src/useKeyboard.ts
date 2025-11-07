@@ -5,6 +5,7 @@ import {
   PLAYER_ACCELERATION,
   PLAYER_SPEED,
   TILE_SIZE,
+  UNCOVER_TIME_MS,
 } from "./constants";
 import {
   calculateMovementAndCollision,
@@ -12,7 +13,6 @@ import {
 } from "./playerMovement";
 import type { AppState } from "./types";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
-import { isEqual } from "lodash-es";
 
 interface UseKeyboardOptions {
   setState: Updater<AppState>;
@@ -88,68 +88,76 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
           draft.player.x = result.x;
           draft.player.y = result.y;
 
-          if (!isEqual(draft.collidingTiles, result.collidingTiles)) {
-            draft.collidingTiles = result.collidingTiles;
-          }
-
           // Update viewport and visible chunks
           updateViewport(draft);
           updateVisibleChunks(draft);
-        } else {
-          // Clear colliding tiles when not moving
-          if (draft.collidingTiles.size > 0) {
-            draft.collidingTiles.clear();
+        }
+
+        // Get player's current tile position
+        const playerTileX = Math.floor(draft.player.x / TILE_SIZE);
+        const playerTileY = Math.floor(draft.player.y / TILE_SIZE);
+        const currentTileId = `${playerTileX},${playerTileY}`;
+        const tile = draft.world[playerTileY]?.[playerTileX];
+
+        // Determine what action is available at current position
+        let availableAction: "uncover" | "mine" | null = null;
+        if (tile) {
+          if (tile.covered) {
+            // Covered tiles take priority - must uncover before mining
+            availableAction = "uncover";
+          } else if (tile.resource) {
+            // Uncovered tiles with resources can be mined
+            availableAction = "mine";
           }
         }
 
-        // Handle mining action
+        // Check if player moved to a different tile (cancel action if so)
+        const playerMovedTiles =
+          draft.action && draft.action.tileId !== currentTileId;
+        if (playerMovedTiles) {
+          draft.action = null;
+        }
+
+        // Handle action progression with spacebar
         const spacebarPressed = keysPressed.current.has(" ");
+        if (spacebarPressed && availableAction) {
+          // Check if we need to start a new action
+          if (
+            !draft.action ||
+            draft.action.tileId !== currentTileId ||
+            draft.action.type !== availableAction
+          ) {
+            // Initialize new action
+            draft.action = {
+              type: availableAction,
+              tileId: currentTileId,
+              progress: 0,
+            };
+          } else {
+            // Continue existing action
+            const actionTimeMs =
+              availableAction === "mine" ? MINE_TIME_MS : UNCOVER_TIME_MS;
+            const progressIncrement = deltaTime / (actionTimeMs / 1000);
+            draft.action.progress += progressIncrement;
 
-        // Only allow mining when not colliding with any tiles
-        if (spacebarPressed && draft.collidingTiles.size === 0) {
-          // Get player's current tile
-          const playerTileX = Math.floor(draft.player.x / TILE_SIZE);
-          const playerTileY = Math.floor(draft.player.y / TILE_SIZE);
-          const currentTileId = `${playerTileX},${playerTileY}`;
-          const tile = draft.world[playerTileY]?.[playerTileX];
-
-          // Check if tile is uncovered and has a resource
-          if (tile && !tile.covered && tile.resource) {
-            // Check if we need to start a new mining action
-            if (
-              !draft.action ||
-              draft.action.tileId !== currentTileId ||
-              draft.action.type !== "mine"
-            ) {
-              // Initialize new mine action
-              draft.action = {
-                type: "mine",
-                tileId: currentTileId,
-                progress: 0,
-              };
-            } else {
-              // Continue existing mine action
-              const progressIncrement = deltaTime / (MINE_TIME_MS / 1000);
-              draft.action.progress += progressIncrement;
-
-              // Check if mining cycle is complete
-              if (draft.action.progress >= 1) {
+            // Check if action is complete
+            if (draft.action.progress >= 1) {
+              if (availableAction === "mine" && tile.resource) {
                 // Add resource to inventory
                 draft.inventory[tile.resource] += 1;
-
                 // Reset progress to remainder for continuous mining
                 draft.action.progress = draft.action.progress - 1.0;
+              } else if (availableAction === "uncover") {
+                // Uncover the tile
+                tile.covered = false;
+                // Clear action (uncovering is one-time)
+                draft.action = null;
               }
-            }
-          } else {
-            // Clear mine action if conditions not met
-            if (draft.action?.type === "mine") {
-              draft.action = null;
             }
           }
         } else {
-          // Clear mine action if spacebar not pressed or colliding
-          if (draft.action?.type === "mine") {
+          // Clear action if spacebar not pressed or no action available
+          if (draft.action) {
             draft.action = null;
           }
         }

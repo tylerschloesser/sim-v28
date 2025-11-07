@@ -1,6 +1,7 @@
 import { memo } from "react";
 import type { World, ChunkBounds, ResourceType } from "./types";
 import { TILE_SIZE, CHUNK_SIZE, RESOURCE_COLORS } from "./constants";
+import { isCoveredTileAdjacentToUncovered } from "./playerMovement";
 
 interface TileGridProps {
   world: World;
@@ -20,14 +21,27 @@ function seededRandom(x: number, y: number): number {
   return value - Math.floor(value);
 }
 
-function getTileColor(covered: boolean, x: number, y: number): string {
+function getTileColor(
+  covered: boolean,
+  x: number,
+  y: number,
+  world: World,
+): string {
   const random = seededRandom(x, y);
   if (covered) {
-    // Deterministic shade of black (0-20% lightness)
-    const lightness = Math.floor(random * 20);
-    return `hsl(0, 0%, ${lightness}%)`;
+    // Check if this covered tile is adjacent to an uncovered tile
+    const isAdjacent = isCoveredTileAdjacentToUncovered(x, y, world);
+    if (isAdjacent) {
+      // Covered and adjacent: medium gray (40-60% lightness)
+      const lightness = 40 + Math.floor(random * 20);
+      return `hsl(0, 0%, ${lightness}%)`;
+    } else {
+      // Covered and not adjacent: dark black (0-20% lightness)
+      const lightness = Math.floor(random * 20);
+      return `hsl(0, 0%, ${lightness}%)`;
+    }
   } else {
-    // Deterministic shade of white (80-100% lightness)
+    // Uncovered: white (80-100% lightness)
     const lightness = 80 + Math.floor(random * 20);
     return `hsl(0, 0%, ${lightness}%)`;
   }
@@ -102,7 +116,7 @@ const TileChunk = memo(function TileChunk({
           y={y * TILE_SIZE}
           width={TILE_SIZE}
           height={TILE_SIZE}
-          fill={getTileColor(tile.covered, x, y)}
+          fill={getTileColor(tile.covered, x, y, world)}
         />,
       );
 

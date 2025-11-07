@@ -3,10 +3,12 @@ import { TILE_SIZE } from "./constants";
 
 interface TileHighlightProps {
   highlightedTiles: Set<string>;
+  color: string;
 }
 
 export const TileHighlight = memo(function TileHighlight({
   highlightedTiles,
+  color,
 }: TileHighlightProps) {
   return (
     <g>
@@ -20,7 +22,7 @@ export const TileHighlight = memo(function TileHighlight({
             width={TILE_SIZE}
             height={TILE_SIZE}
             fill="none"
-            stroke="red"
+            stroke={color}
             strokeWidth={2}
           />
         );

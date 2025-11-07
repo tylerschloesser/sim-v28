@@ -1,34 +1,115 @@
-import type { MovementInput, MovementResult } from "./types";
+import type { MovementInput, MovementResult, ReadonlyWorld } from "./types";
 import { COLLISION_PADDING, TILE_SIZE } from "./constants";
 
 /**
+ * Helper function to check if a tile at given coordinates is uncovered.
+ * Returns false for out-of-bounds tiles.
+ */
+function isTileUncovered(
+  tileX: number,
+  tileY: number,
+  world: ReadonlyWorld,
+): boolean {
+  if (
+    tileY < 0 ||
+    tileY >= world.length ||
+    tileX < 0 ||
+    tileX >= world[0].length
+  ) {
+    return false; // Out of bounds is not uncovered
+  }
+  return !world[tileY][tileX].covered;
+}
+
+/**
+ * Checks if a covered tile is orthogonally adjacent to at least one uncovered tile.
+ * Used for rendering gray adjacent tiles and determining walkability.
+ */
+export function isCoveredTileAdjacentToUncovered(
+  tileX: number,
+  tileY: number,
+  world: ReadonlyWorld,
+): boolean {
+  // Must be in bounds
+  if (
+    tileY < 0 ||
+    tileY >= world.length ||
+    tileX < 0 ||
+    tileX >= world[0].length
+  ) {
+    return false;
+  }
+
+  const tile = world[tileY][tileX];
+
+  // Must be covered
+  if (!tile.covered) {
+    return false;
+  }
+
+  // Check if any orthogonally adjacent tile is uncovered
+  const adjacentOffsets = [
+    { dx: -1, dy: 0 }, // left
+    { dx: 1, dy: 0 }, // right
+    { dx: 0, dy: -1 }, // up
+    { dx: 0, dy: 1 }, // down
+  ];
+
+  for (const { dx, dy } of adjacentOffsets) {
+    if (isTileUncovered(tileX + dx, tileY + dy, world)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Checks if a tile is walkable: either uncovered, or covered but adjacent to an uncovered tile.
+ * Adjacency is orthogonal only (up/down/left/right, not diagonal).
+ */
+function isTileWalkable(
+  tileX: number,
+  tileY: number,
+  world: ReadonlyWorld,
+): boolean {
+  // Out of bounds is not walkable
+  if (
+    tileY < 0 ||
+    tileY >= world.length ||
+    tileX < 0 ||
+    tileX >= world[0].length
+  ) {
+    return false;
+  }
+
+  const tile = world[tileY][tileX];
+
+  // If uncovered, it's walkable
+  if (!tile.covered) {
+    return true;
+  }
+
+  // If covered, check if adjacent to uncovered
+  return isCoveredTileAdjacentToUncovered(tileX, tileY, world);
+}
+
+/**
  * Pure function that calculates player movement with collision detection.
- * Prevents movement into covered tiles using a padding buffer.
+ * Prevents movement into non-walkable tiles using a padding buffer.
  * Allows sliding along walls by moving as close as possible to boundaries.
- * Does not mutate any input - returns new position and collision state.
+ * Does not mutate any input - returns new position.
  */
 export function calculateMovementAndCollision(
   input: MovementInput,
 ): MovementResult {
   const { currentX, currentY, dx, dy, world } = input;
-  const newCollidingTiles = new Set<string>();
 
-  // Helper function to check if a position overlaps a covered tile
-  const isPositionCovered = (x: number, y: number): boolean => {
+  // Helper function to check if a position overlaps a non-walkable tile
+  const isPositionBlocked = (x: number, y: number): boolean => {
     const tileX = Math.floor(x / TILE_SIZE);
     const tileY = Math.floor(y / TILE_SIZE);
-
-    // Check bounds
-    if (
-      tileY < 0 ||
-      tileY >= world.length ||
-      tileX < 0 ||
-      tileX >= world[0].length
-    ) {
-      return true; // Treat out of bounds as covered
-    }
-
-    return world[tileY][tileX].covered;
+    return !isTileWalkable(tileX, tileY, world);
   };
 
   // Handle X-axis movement with padding
@@ -37,11 +118,7 @@ export function calculateMovementAndCollision(
     const newX = currentX + dx;
     const checkX = newX + (dx > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
 
-    if (isPositionCovered(checkX, currentY)) {
-      newCollidingTiles.add(
-        `${Math.floor(checkX / TILE_SIZE)},${Math.floor(currentY / TILE_SIZE)}`,
-      );
-
+    if (isPositionBlocked(checkX, currentY)) {
       // Calculate the tile boundary we're approaching
       const targetTileX =
         dx > 0 ? Math.floor(checkX / TILE_SIZE) : Math.ceil(checkX / TILE_SIZE);
@@ -64,11 +141,7 @@ export function calculateMovementAndCollision(
     const newY = currentY + dy;
     const checkY = newY + (dy > 0 ? COLLISION_PADDING : -COLLISION_PADDING);
 
-    if (isPositionCovered(currentX, checkY)) {
-      newCollidingTiles.add(
-        `${Math.floor(currentX / TILE_SIZE)},${Math.floor(checkY / TILE_SIZE)}`,
-      );
-
+    if (isPositionBlocked(currentX, checkY)) {
       // Calculate the tile boundary we're approaching
       const targetTileY =
         dy > 0 ? Math.floor(checkY / TILE_SIZE) : Math.ceil(checkY / TILE_SIZE);
@@ -85,11 +158,10 @@ export function calculateMovementAndCollision(
     }
   }
 
-  // Return new position and collision state (pure - no mutations)
+  // Return new position (pure - no mutations)
   return {
     x: currentX + finalDx,
     y: currentY + finalDy,
-    collidingTiles: newCollidingTiles,
   };
 }
 

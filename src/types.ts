@@ -45,7 +45,6 @@ export type Inventory = Record<ResourceType, number>;
 export interface AppState {
   player: Player;
   world: World;
-  collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
   action: UncoverAction | MineAction | null;
@@ -66,5 +65,4 @@ export interface MovementInput {
 export interface MovementResult {
   readonly x: number;
   readonly y: number;
-  readonly collidingTiles: Set<string>;
 }

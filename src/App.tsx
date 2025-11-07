@@ -3,7 +3,6 @@ import { generateWorld } from "./worldGen";
 import { TileGrid } from "./TileGrid";
 import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
-import { useUncovering } from "./useUncovering";
 import { DebugOverlay } from "./DebugOverlay";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
@@ -17,7 +16,6 @@ function initializeAppState(): AppState {
   const state: AppState = {
     player: { x: worldCenterX, y: worldCenterY, vx: 0, vy: 0 },
     world,
-    collidingTiles: new Set(),
     viewport: { x: 0, y: 0, width: 0, height: 0 },
     visibleChunks: { minChunkX: 0, maxChunkX: 0, minChunkY: 0, maxChunkY: 0 },
     action: null,
@@ -41,19 +39,14 @@ export function App() {
   const [state, setState] = useImmer<AppState>(initializeAppState);
 
   useKeyboard({ setState });
-  useUncovering({ setState });
 
-  // Calculate which tiles to highlight:
-  // Priority 1: Show collision tiles if any exist
-  // Priority 2: Show resource tile if player is standing on one
-  let highlightedTiles = state.collidingTiles;
-  if (highlightedTiles.size === 0) {
-    const playerTileX = Math.floor(state.player.x / TILE_SIZE);
-    const playerTileY = Math.floor(state.player.y / TILE_SIZE);
-    const tile = state.world[playerTileY]?.[playerTileX];
-    if (tile?.resource) {
-      highlightedTiles = new Set([`${playerTileX},${playerTileY}`]);
-    }
+  // Calculate which tiles to highlight based on current action
+  // Yellow for mining, blue for uncovering
+  let highlightedTiles = new Set<string>();
+  let highlightColor = "red"; // default
+  if (state.action) {
+    highlightedTiles = new Set([state.action.tileId]);
+    highlightColor = state.action.type === "mine" ? "yellow" : "blue";
   }
 
   return (
@@ -74,7 +67,10 @@ export function App() {
           transform={`translate(${window.innerWidth / 2 - state.player.x}, ${window.innerHeight / 2 - state.player.y})`}
         >
           <TileGrid world={state.world} visibleChunks={state.visibleChunks} />
-          <TileHighlight highlightedTiles={highlightedTiles} />
+          <TileHighlight
+            highlightedTiles={highlightedTiles}
+            color={highlightColor}
+          />
         </g>
         <circle
           cx={window.innerWidth / 2}
@@ -85,7 +81,6 @@ export function App() {
       </svg>
       <DebugOverlay
         player={state.player}
-        collidingTiles={state.collidingTiles}
         viewport={state.viewport}
         visibleChunks={state.visibleChunks}
         action={state.action}

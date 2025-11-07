@@ -9,7 +9,6 @@ import type {
 
 interface DebugOverlayProps {
   player: Player;
-  collidingTiles: Set<string>;
   viewport: Viewport;
   visibleChunks: ChunkBounds;
   action: UncoverAction | MineAction | null;
@@ -18,7 +17,6 @@ interface DebugOverlayProps {
 
 export function DebugOverlay({
   player,
-  collidingTiles,
   viewport,
   visibleChunks,
   action,
@@ -61,19 +59,6 @@ export function DebugOverlay({
         {(visibleChunks.maxChunkX - visibleChunks.minChunkX) *
           (visibleChunks.maxChunkY - visibleChunks.minChunkY)}
       </div>
-
-      <div style={{ marginTop: "10px" }}>
-        Colliding Tiles: {collidingTiles.size}
-      </div>
-      {collidingTiles.size > 0 && (
-        <div style={{ marginTop: "5px", maxHeight: "100px", overflow: "auto" }}>
-          {Array.from(collidingTiles).map((tile) => (
-            <div key={tile} style={{ fontSize: "10px" }}>
-              {tile}
-            </div>
-          ))}
-        </div>
-      )}
 
       <div style={{ marginTop: "10px" }}>Action:</div>
       {action ? (
