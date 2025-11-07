@@ -29,6 +29,12 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
       if (["w", "a", "s", "d", " "].includes(key)) {
         keysPressed.current.add(key);
       }
+      // Toggle inventory with 'e' key
+      if (key === "e") {
+        setState((draft) => {
+          draft.inventoryOpen = !draft.inventoryOpen;
+        });
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -43,7 +49,7 @@ export function useKeyboard({ setState }: UseKeyboardOptions) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [setState]);
 
   // Animation loop for smooth player movement with acceleration
   useEffect(() => {

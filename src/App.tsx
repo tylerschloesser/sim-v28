@@ -5,6 +5,7 @@ import { TileHighlight } from "./TileHighlight";
 import { useKeyboard } from "./useKeyboard";
 import { DebugOverlay } from "./DebugOverlay";
 import { ProgressBar } from "./ProgressBar";
+import { InventoryModal } from "./InventoryModal";
 import { updateViewport, updateVisibleChunks } from "./viewportUtils";
 import type { AppState } from "./types";
 import { WORLD_SIZE, TILE_SIZE } from "./constants";
@@ -27,6 +28,7 @@ function initializeAppState(): AppState {
       copper: 0,
       coal: 0,
     },
+    inventoryOpen: false,
   };
 
   // Calculate initial viewport and chunks
@@ -69,6 +71,15 @@ export function App() {
         />
       </svg>
       <ProgressBar action={state.action} />
+      <InventoryModal
+        inventory={state.inventory}
+        open={state.inventoryOpen}
+        onOpenChange={(open) =>
+          setState((draft) => {
+            draft.inventoryOpen = open;
+          })
+        }
+      />
       <DebugOverlay
         player={state.player}
         viewport={state.viewport}

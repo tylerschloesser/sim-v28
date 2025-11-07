@@ -49,6 +49,7 @@ export interface AppState {
   visibleChunks: ChunkBounds;
   action: UncoverAction | MineAction | null;
   inventory: Inventory;
+  inventoryOpen: boolean;
 }
 
 // Readonly types for pure functions
